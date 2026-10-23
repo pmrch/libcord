@@ -1,0 +1,33 @@
+---
+# Welcome back to hell. Pure C only. Zero Objective-C nonsense allowed.
+Checks: >
+  *,
+  -llvm-include-order,
+  -llvm-namespace-comment,
+  -google-readability-todo,
+  -modernize-*,
+  -hicpp-*,
+  -cppcoreguidelines-*,
+  -google-runtime-references,
+  -google-explicit-constructor,
+  -llvmlibc-*,
+  -google-objc-*,
+  -objc-*
+
+#WarningsAsErrors: '*'
+HeaderFilterRegex: '.*'
+
+# Extra sadistic formatting and strictness enforcement
+CheckOptions:
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionCase
+    value: camelCase
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-function-cognitive-complexity.Threshold
+    value: 5
