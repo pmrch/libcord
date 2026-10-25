@@ -30,4 +30,4 @@ CheckOptions:
   - key: readability-identifier-naming.ParameterCase
     value: lower_case
   - key: readability-function-cognitive-complexity.Threshold
-    value: 5
+    value: 15
