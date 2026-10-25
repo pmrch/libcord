@@ -4,16 +4,19 @@
 #include "utils.h"
 
 void free_all(Freeable *objs, u64 num) {
+    if (objs == NULL) { return; }
+
 #pragma unroll 4
     for (u64 i = 0; i < num; i++) {
         Freeable fr_obj = objs[i];
-        if (fr_obj.func == NULL || fr_obj.obj == NULL) { return; }
+        if (fr_obj.func == NULL || fr_obj.obj == NULL) { continue; }
 
         LOG_VERBOSE("Freeing %s at %p", fr_obj.name, fr_obj.obj);
+        const void *addr = fr_obj.obj;
         fr_obj.func(fr_obj.obj);
 
-        LOG_VERBOSE("Freed object at %p", fr_obj.addr);
-        fr_obj.addr = NULL;
+        LOG_VERBOSE("Freed object at %p", addr);
+        addr = NULL;
     }
 }
 

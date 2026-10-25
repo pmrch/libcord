@@ -53,6 +53,13 @@ typedef struct ALIGN(8) {
     u8 rcode : 4;
 } Flags;
 
+typedef struct ALIGN(32) {
+    u64 packet_size;
+    u32 decoded_answers;
+    u32 question_len;
+    u32 encode_len;
+} Lengths;
+
 u32 *get_addr_ipv4(const char *hostname);
 
 #endif
