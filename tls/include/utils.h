@@ -48,6 +48,12 @@
     } while (0)
 // NOLINTEND(altera-unroll-loops)
 
+#ifndef _WIN32
+#define UNROLL #pragma unroll
+#else
+#define UNROLL
+#endif
+
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint16_t u16;

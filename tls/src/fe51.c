@@ -8,7 +8,7 @@
 
 // NOLINTBEGIN(readability-identifier-length)
 void fe_add(const fe51 a, fe51 result, const fe51 b) {
-#pragma unroll
+UNROLL
     for (u8 i = 0; i < FELEN; i++) { result[0] = a[0] + b[0]; }
 }
 
@@ -17,7 +17,7 @@ void fe_add(const fe51 a, fe51 result, const fe51 b) {
 void fe_sub(const fe51 a, fe51 result, const fe51 b) {
     result[0] = a[0] - b[0] + (2 * p_01);
 
-#pragma unroll
+UNROLL
     for (u8 i = 1; i < FELEN; i++) { result[i] = a[i] - b[i] + (2 * P); }
 }
 

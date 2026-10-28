@@ -2,8 +2,8 @@
 #define PLATFORM_H
 
 #ifdef _WIN32
-#define PACKED __declspec(packed)
-#define ALIGN(x) __declspec(alig(x))
+#define PACKED __declspec(pack)
+#define ALIGN(x) __declspec(align(x))
 #define PRINTF_LIKE(idx, p)
 #else
 #define PACKED __attribute__((packed))

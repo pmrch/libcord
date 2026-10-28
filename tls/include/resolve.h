@@ -7,12 +7,9 @@
 #include "platform.h"
 #include "utils.h"
 
-#include <netinet/in.h>
-#include <sys/socket.h>
-
-typedef struct sockaddr_in  saddr_in;
-typedef struct sockaddr_in6 saddr_in6;
-typedef struct sockaddr     saddr;
+#ifndef _WIN32
+#include "resolve_unix.h"
+#endif
 
 // NOLINTNEXTLINE
 typedef struct {
@@ -24,8 +21,9 @@ typedef struct {
     u16 arcount;
 } Header;
 
-// NOLINTNEXTLINE
-typedef struct PACKED {
+// NOLINTBEGIN
+#pragma pack(push, 1)
+typedef struct {
     u16 name;
     u16 type;
     u16 class;
@@ -33,12 +31,15 @@ typedef struct PACKED {
     u16 rdlength;
     u32 rdata;
 } Answer;
+#pragma pack(pop)
 
-// NOLINTNEXTLINE
+#pragma pack(push, 1)
 typedef struct {
     u16 qtype;
     u16 qclass;
 } Question;
+#pragma pack(pop)
+// NOLINTEND
 
 // Non-critical structs
 
