@@ -12,7 +12,6 @@
 #include <sys/time.h>
 
 #define DECODED_ANSWERS 10
-#define IPV4BUF 16
 
 #define QR 15
 #define OPCODE 11
@@ -22,28 +21,10 @@
 #define RA 7
 #define Z 4
 
-#define OCT1 24
-#define OCT2 16
-#define OCT3 8
-
-#define IPV4 0xFF
-
-static unsigned char IPV4_BUF_SHARED[IPV4BUF] = {0};
-
 // NOLINTNEXTLINE readability-identifier-length
 static u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
     u16 flags_total = (u16)((qr << QR) | (opcode << OPCODE) | (aa << AA) | (tc << TC) | (rd << RD) | (ra << RA) | (z << Z) | (rcode));
     return flags_total;
-}
-
-// clang-format off
-static unsigned char *get_formatted_ipv4(u32 word) {
-    memset(IPV4_BUF_SHARED, 0, IPV4BUF);
-    (void)snprintf((char *)IPV4_BUF_SHARED, IPV4BUF, "%u.%u.%u.%u", 
-        word >> OCT1 & IPV4, word >> OCT2 & IPV4, word >> OCT3 & IPV4, word & IPV4
-    ); // clang-format on
-
-    return IPV4_BUF_SHARED;
 }
 
 static u8 *encode_hostname(const char *hostname, u32 *final_len) {
@@ -173,10 +154,10 @@ ret_bad:
 }
 // NOLINTEND(concurrency-mt-unsafe)
 
-static void decode_answers(Answer *answers, u8 *answers_buf, Lengths *lens) {
+static u32 *decode_answers(Answer *answers, u8 *answers_buf, Lengths *lens) {
     if (answers == NULL || answers_buf == NULL) {
         LOG_ERROR("%s", "Input or output buffer for decoded answers was NULL!");
-        return;
+        return NULL;
     }
 
     Header head = {0};
@@ -192,9 +173,14 @@ static void decode_answers(Answer *answers, u8 *answers_buf, Lengths *lens) {
 
     // Answer offset
     u64 offset = 0;
+    u32 *output = (u32 *)malloc(MIN(lens->decoded_answers, DECODED_ANSWERS) * sizeof(u32));
+    if (output == NULL) {
+        LOG_ERROR("%s", "Failed to allocate memory for output addresses");
+        return NULL;
+    }
 
 #pragma unroll 3
-    for (int32_t i = 0; i < MIN(ntohs(head.ancount), 10); i++) {
+    for (int32_t i = 0; i < MIN(ntohs(head.ancount), DECODED_ANSWERS); i++) {
         Answer *cur_ans = &answers[i];
         memcpy(cur_ans, answers_buf + sizeof(head) + lens->question_len + offset, sizeof(Answer));
         
@@ -202,7 +188,11 @@ static void decode_answers(Answer *answers, u8 *answers_buf, Lengths *lens) {
         LOG_DEBUG("Answer %d IP: %s", i, get_formatted_ipv4(ipv4_word));
 
         offset += sizeof(Answer);
+        output[i] = ipv4_word;
     }
+
+    LOG_DEBUG("Successfully decoded %u answers", lens->decoded_answers);
+    return output;
 }
 
 // NOLINTBEGIN(concurrency-mt-unsafe, altera-unroll-loops, bugprone-casting-through-void)
@@ -230,11 +220,10 @@ u32 *get_addr_ipv4(const char *hostname) {
 
     // Store retrieved IP addresses
     Answer  decoded[DECODED_ANSWERS] = {0};
-    decode_answers(decoded, ansbuf, &lens);
-    LOG_DEBUG("Successfully decoded %u answers", lens.decoded_answers);
+    u32 *ipv4_words = decode_answers(decoded, ansbuf, &lens);
 
     // Cleanup for the end
     close(sock);
-    return 0;
+    return ipv4_words;
 }
 // NOLINTEND(concurrency-mt-unsafe, altera-unroll-loops, bugprone-casting-through-void)

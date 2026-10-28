@@ -23,7 +23,7 @@ lib_dyn: $(OBJ_DYN)
 	@mkdir -p lib
 	$(CC) $(LDFLAGS) -shared -o lib/libcord.so $(OBJ_DYN)
 
-static: clean
+static:
 	bear -- make lib_static -j$(nproc)
 
 dyn: clean
@@ -33,7 +33,9 @@ bin/cdc: test/main.c
 	@mkdir -p bin
 	$(CC) $(CFLAGS) test/main.c -Iinclude -Llib -lcord -o bin/cdiscord -flto -static
 
-bin: static
+bin:
+	make clean
+	make static
 	bear -- make bin/cdc -j$(nproc)
 
 clean:
