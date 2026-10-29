@@ -8,11 +8,11 @@ OBJ := $(patsubst src/%.c,build/%.o,$(SRC))
 OBJ_DYN := $(patsubst src/%.c,build_dyn/%.o,$(SRC))
 
 build/%.o: src/%.c
-	@mkdir -p build
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -Iinclude -MMD -MP -c $< -o $@
 
 build_dyn/%.o: src/%.c
-	@mkdir -p build_dyn
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -Iinclude -MMD -MP -fPIC -c $< -o $@
 
 lib_static: $(OBJ)

@@ -40,8 +40,7 @@ def x25519(scalar_bytes, u_bytes):
   # Montgomery ladder initialization (using projective coordinates X:Z)
   x_2 = 1
   z_2 = 0
-  x_3 = x_1
-  z_3 = 1
+  x_3 = x_1p = 2**255 - 19
 
   swap = 0
   for t in range(255, -1, -1):
@@ -96,7 +95,17 @@ def compute_shared_secret(private_key_bytes, peer_public_bytes):
 
 # --- Example Usage & Verification ---
 if __name__ == "__main__":
-  print("Generating keys for Alice and Bob...")
+
+  p = 2**255 - 19
+  a = 2**255 - 20
+  # add0 should be sum of all terms that contribute to limb0
+  # a[0]*b[0] + (a[1]*19*b[4]) + (a[2]*19*b[3]) + (a[3]*19*b[2]) + (a[4]*19*b[1])
+  limb = 2**51 - 1  # max limb value
+  add0 = limb*limb + 4*(limb*19*limb)
+  print(hex(add0 >> 64))   # expected hi
+  print(hex(add0 & 0xFFFFFFFFFFFFFFFF))  # expected lo
+
+  """print("Generating keys for Alice and Bob...")
 
   # Alice's keypair
   alice_priv = generate_private_key()
@@ -118,4 +127,4 @@ if __name__ == "__main__":
 
   # Verify correctness
   assert alice_shared == bob_shared, "Shared secrets do not match!"
-  print("\nSuccess! Both shared secrets match perfectly.")
+  print("\nSuccess! Both shared secrets match perfectly.")"""

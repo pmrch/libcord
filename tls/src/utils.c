@@ -26,20 +26,6 @@ void free_all(Freeable *objs, u64 num) {
     }
 }
 
-u16 generate_random_u16(void) {
-    FILE *rand = fopen("/dev/urandom", "rbe");
-    if (rand == NULL) {
-        LOG_ERROR("%s", "Failed to open /dev/urandom");
-        return 0;
-    }
-
-    u8  buffer[2]  = {0};
-    u64 read_bytes = fread(buffer, 1, 2, rand);
-
-    (void)read_bytes, fclose(rand);
-    return ((u16)((buffer[0] << ((1 << 3))) | buffer[1]) % (UINT16_MAX + 1));
-}
-
 unsigned char *get_formatted_ipv4(u32 word) {
     memset(IPV4_BUF_SHARED, 0, IPV4BUF); // clang-format off
     (void)snprintf((char *)IPV4_BUF_SHARED, IPV4BUF, "%u.%u.%u.%u", 
@@ -88,7 +74,13 @@ pseudo_u128 u128_add_u64(pseudo_u128 num_a, u64 num_b) {
     return result;
 }
 
-u64 u128_shr51(pseudo_u128 num_a) { return (num_a.low_bits >> LIMB_SIZE) | (num_a.high_bits << LIMB_STEP); }
+pseudo_u128 u128_shr51(pseudo_u128 num_a) {
+    pseudo_u128 result = {0};
+
+    result.low_bits  = (num_a.low_bits >> LIMB_SIZE) | (num_a.high_bits << LIMB_STEP);
+    result.high_bits = num_a.high_bits >> LIMB_SIZE;
+    return result;
+}
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 pseudo_u128 mul_u64(u64 left, u64 right) {

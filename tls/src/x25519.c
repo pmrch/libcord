@@ -1,13 +1,9 @@
 #include "crypt.h"
+#include "fe51.h"
 #include "log.h"
 #include "utils.h"
 
 #include <string.h>
-
-// These two make up the 64 bits
-#define FULL_BITS (u64)64
-#define LIMB_SIZE (u64)51
-#define LIMB_STEP (u64)13
 
 #define ALL_ZEROS 0x0000000000000000ULL
 #define ALL_ONES 0xFFFFFFFFFFFFFFFFULL
@@ -34,6 +30,27 @@ void encode_u_coordinate(u8 *bytes, fe51 field_elem) {
 void reduce(fe51 field_elem) {
     carry_propagate(field_elem);
     carry_propagate(field_elem);
+
+    u64 carry = (field_elem[0] + PRIME) >> LIMB_SIZE;
+    carry     = (field_elem[1] + carry) >> LIMB_SIZE;
+    carry     = (field_elem[2] + carry) >> LIMB_SIZE;
+    carry     = (field_elem[3] + carry) >> LIMB_SIZE;
+    carry     = (field_elem[4] + carry) >> LIMB_SIZE;
+
+    field_elem[0] += PRIME * carry;
+    field_elem[1] += (field_elem[0] >> LIMB_SIZE);
+
+    field_elem[0] &= MASK51;
+    field_elem[2] += (field_elem[1] >> LIMB_SIZE);
+
+    field_elem[1] &= MASK51;
+    field_elem[3] += (field_elem[2] >> LIMB_SIZE);
+
+    field_elem[2] &= MASK51;
+    field_elem[4] += (field_elem[3] >> LIMB_SIZE);
+
+    field_elem[3] &= MASK51;
+    field_elem[4] &= MASK51;
 }
 
 void carry_propagate(fe51 field_elem) {

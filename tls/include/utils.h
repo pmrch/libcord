@@ -9,9 +9,9 @@
 #define MAX(x, y) (x > y ? x : y)
 
 // These two make up the 64 bits
-#define FULL_BITS (u64)64
-#define LIMB_SIZE (u64)51
-#define LIMB_STEP (u64)13
+#define FULL_BITS 64ULL
+#define LIMB_SIZE 51ULL
+#define LIMB_STEP 13ULL
 
 #define OCT1 24
 #define OCT2 16
@@ -48,12 +48,6 @@
     } while (0)
 // NOLINTEND(altera-unroll-loops)
 
-#ifndef _WIN32
-#define UNROLL #pragma unroll
-#else
-#define UNROLL
-#endif
-
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint16_t u16;
@@ -86,6 +80,6 @@ pseudo_u128 mul_u64(u64 left, u64 right);
 pseudo_u128 u128_add(pseudo_u128 left, pseudo_u128 right);
 pseudo_u128 u128_add_u64(pseudo_u128 num_a, u64 num_b);
 
-u64 u128_shr51(pseudo_u128 num_a);
+pseudo_u128 u128_shr51(pseudo_u128 num_a);
 
 #endif
