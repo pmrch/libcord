@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 
 #include "log.h"
 #include "utils.h"
@@ -12,7 +11,6 @@ static unsigned char IPV4_BUF_SHARED[IPV4BUF] = {0};
 void free_all(Freeable *objs, u64 num) {
     if (objs == NULL) { return; }
 
-#pragma unroll 4
     for (u64 i = 0; i < num; i++) {
         Freeable fr_obj = objs[i];
         if (fr_obj.func == NULL || fr_obj.obj == NULL) { continue; }
@@ -36,14 +34,11 @@ unsigned char *get_formatted_ipv4(u32 word) {
 
 u64 u64_from_bytes_le(const u8 bytes[ONE_BYTE]) {
     u64 result = (u64)bytes[0];
-
-#pragma unroll
-    for (u8 i = 1; i < ONE_BYTE; i++) { result |= (u64)(bytes[i] << (ONE_BYTE * i)); }
+    for (u8 i = 1; i < ONE_BYTE; i++) { result |= ((u64)bytes[i] << (ONE_BYTE * i)); }
     return result;
 }
 
 void u64_to_bytes(u64 value, u8 out[ONE_BYTE]) {
-#pragma unroll
     for (u8 i = 1; i < ONE_BYTE; i++) { out[i] = (u8)(value >> (ONE_BYTE * i)) & IPV4; }
     out[0] = value & IPV4;
 }
@@ -55,53 +50,59 @@ void ipv4_word_to_bytes(u32 word, u8 bytes[4]) {
     bytes[3] = word & IPV4;
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-pseudo_u128 u128_add(pseudo_u128 left, pseudo_u128 right) {
-    pseudo_u128 result = {0};
-
-    result.low_bits  = left.low_bits + right.low_bits;
-    result.high_bits = left.high_bits + right.high_bits + (result.low_bits < left.low_bits ? 1 : 0);
-
-    return result;
+// Helper to convert hex ASCII character to 4-bit integer
+// NOLINTBEGIN(readability-identifier-length, readability-magic-numbers)
+static u8 hex_val(char c) {
+    if (c >= '0' && c <= '9') { return (u8)(c - '0'); }
+    if (c >= 'a' && c <= 'f') { return (u8)(c - 'a' + 10); }
+    if (c >= 'A' && c <= 'F') { return (u8)(c - 'A' + 10); }
+    return 0;
 }
 
-pseudo_u128 u128_add_u64(pseudo_u128 num_a, u64 num_b) {
-    pseudo_u128 result = {0};
-
-    result.low_bits  = num_a.low_bits + num_b;
-    result.high_bits = num_a.high_bits + (result.low_bits < num_a.low_bits ? 1 : 0);
-
-    return result;
+// Convert a 64-character hex string into a 32-byte array (Little-Endian)
+void hex_to_bytes_le(const char *hex_str, uint8_t bytes[32]) {
+    for (int i = 0; i < 32; i++) {
+        // Hex string is big-endian visually; reverse byte index for little-endian byte array
+        uint8_t hi = hex_val(hex_str[(u8)(31 - i) * 2]);
+        uint8_t lo = hex_val(hex_str[((31 - i) * 2) + 1]);
+        bytes[i]   = (u8)(hi << 4) | lo;
+    }
 }
 
-pseudo_u128 u128_shr51(pseudo_u128 num_a) {
-    pseudo_u128 result = {0};
-
-    result.low_bits  = (num_a.low_bits >> LIMB_SIZE) | (num_a.high_bits << LIMB_STEP);
-    result.high_bits = num_a.high_bits >> LIMB_SIZE;
-    return result;
+void hex_to_bytes(const char *hex, u8 *bytes) {
+    for (u8 i = 0; i < 32; i++) {
+        unsigned int value;
+        sscanf(hex + (i * 2), "%2x", &value);
+        bytes[i] = (u8)value;
+    }
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-pseudo_u128 mul_u64(u64 left, u64 right) {
-    u64 a_low = left & MASK32;
-    u64 b_low = right & MASK32;
+// Convert 32 Little-Endian bytes into 5x51-bit limbs
+void bytes_to_fe51(const uint8_t bytes[32], u64 f[5]) {
+    // Load 64-bit integer chunks directly using bit shifts
+    u64 h0 = (u64)bytes[0] | ((u64)bytes[1] << 8) | ((u64)bytes[2] << 16) | ((u64)bytes[3] << 24) | ((u64)bytes[4] << 32) |
+             ((u64)bytes[5] << 40) | ((u64)bytes[6] << 48) | ((u64)bytes[7] << 56);
 
-    u64 a_high = left >> SHIFT32;
-    u64 b_high = right >> SHIFT32;
+    u64 h1 = (u64)bytes[6] >> 3 | ((u64)bytes[7] << 5) | ((u64)bytes[8] << 13) | ((u64)bytes[9] << 21) | ((u64)bytes[10] << 29) |
+             ((u64)bytes[11] << 37) | ((u64)bytes[12] << 45) | ((u64)bytes[13] << 53);
 
-    u64 low_low   = a_low * b_low;
-    u64 low_high  = a_low * b_high;
-    u64 high_low  = a_high * b_low;
-    u64 high_high = a_high * b_high;
+    u64 h2 = (u64)bytes[12] >> 6 | ((u64)bytes[13] << 2) | ((u64)bytes[14] << 10) | ((u64)bytes[15] << 18) | ((u64)bytes[16] << 26) |
+             ((u64)bytes[17] << 34) | ((u64)bytes[18] << 42) | ((u64)bytes[19] << 50);
 
-    // mid is the cross terms combined
-    // clang-format off
-    u64 mid = (low_low >> SHIFT32) + (low_high & MASK32) + high_low;
-    pseudo_u128 result = {
-        .low_bits  = (low_low & MASK32) | (mid << SHIFT32),
-        .high_bits = high_high + (low_high >> SHIFT32) + (mid >> SHIFT32)
-    }; // clang-format on
+    u64 h3 = (u64)bytes[19] >> 3 | ((u64)bytes[20] << 5) | ((u64)bytes[21] << 13) | ((u64)bytes[22] << 21) | ((u64)bytes[23] << 29) |
+             ((u64)bytes[24] << 37) | ((u64)bytes[25] << 45) | ((u64)bytes[26] << 53);
 
-    return result;
+    u64 h4 = (u64)bytes[25] >> 6 | ((u64)bytes[26] << 2) | ((u64)bytes[27] << 10) | ((u64)bytes[28] << 18) | ((u64)bytes[29] << 26) |
+             ((u64)bytes[30] << 34) | ((u64)bytes[31] << 42);
+
+    // Mask each limb to exactly 51 bits (0x7ffffffffffff)
+    u64 mask = (1ULL << 51) - 1;
+
+    f[0] = h0 & mask;
+    f[1] = h1 & mask;
+    f[2] = h2 & mask;
+    f[3] = h3 & mask;
+    f[4] = h4 & mask;
 }
+
+// NOLINTEND(readability-identifier-length, readability-magic-numbers)

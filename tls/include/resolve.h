@@ -4,7 +4,6 @@
 #define DNS_SERVER 0x01010101 // 1.1.1.1
 #define DNS_PORT 53
 
-#include "platform.h"
 #include "utils.h"
 
 #ifndef _WIN32
@@ -43,7 +42,7 @@ typedef struct {
 
 // Non-critical structs
 
-typedef struct ALIGN(8) {
+typedef struct {
     u8 qr : 1;
     u8 opcode : 4;
     u8 aa : 1;
@@ -54,7 +53,7 @@ typedef struct ALIGN(8) {
     u8 rcode : 4;
 } Flags;
 
-typedef struct ALIGN(32) {
+typedef struct {
     u64 packet_size;
     u32 decoded_answers;
     u32 question_len;

@@ -2,6 +2,8 @@
 # Welcome back to hell. Pure C only. Zero Objective-C nonsense allowed.
 Checks: >
   *,
+  -altera-unroll-loops,
+  -altera-struct-pack-align,
   -llvm-include-order,
   -llvm-namespace-comment,
   -google-readability-todo,
