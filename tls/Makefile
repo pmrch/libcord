@@ -69,7 +69,7 @@ tester:
 get_donna:
 	@mkdir -p deps/donna
 	@git clone --depth 1 https://github.com/agl/curve25519-donna.git temp_donna
-	@cp temp_donna/curve25519-donna-c64.c deps/donna/curve25519_donna_c64.c 2>/dev/null || true
+	@cp temp_donna/curve25519-donna-c64.c deps/donna/curve25519_donna.c 2>/dev/null || true
 	@rm -rf temp_donna
 
 clean_donna:

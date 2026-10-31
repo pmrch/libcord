@@ -33,5 +33,6 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y clang lld llvm bear make
       - run: make static ARCH=x86-64-v3 STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
+      - run: make get_donna
       - name: Differential fuzz (10k iterations)
         run: make -C tests test_fe
