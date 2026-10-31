@@ -1,5 +1,5 @@
 ARCH ?= native
-CC ?= clang
+CC = clang
 
 DEBUG_FLAGS = -g -O0 -fsanitize=address,leak,undefined -fno-omit-frame-pointer
 STRICT_FLAGS = -Weverything -Werror -Wno-unsafe-buffer-usage -Wno-declaration-after-statement -Wno-c++-keyword -Wno-padded
