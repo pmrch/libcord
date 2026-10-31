@@ -1,4 +1,5 @@
 #include "resolve.h"
+#include "abstraction.h"
 #include "constants.h"
 #include "log.h"
 #include "utils.h"
@@ -50,7 +51,7 @@ static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *res
 
         last_dot = cur_dot;
         all_diff += last_diff;
-        
+
         memcpy(buf + 1, hostname, (size_t)last_diff); // +1 offset to skip the first prefix byte
         hostname += last_diff;
 

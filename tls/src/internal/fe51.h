@@ -1,7 +1,6 @@
 #ifndef FE51_H
 #define FE51_H
 
-#include "platform.h"
 #include "types.h"
 
 #define CARRY_NEXT(result, index, current, next) do { \

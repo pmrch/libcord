@@ -1,4 +1,4 @@
-#include "platform.h"
+#include "types.h"
 u128 u128_add(u128 left, u128 right);
 
 #if !defined(__SIZEOF_INT128__)

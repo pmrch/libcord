@@ -1,9 +1,8 @@
 CC = clang
 
 DONNA_CFLAGS = -std=c99 -O2 -w
-CFLAGS = -std=c99 -O2 -g -Weverything -Wno-jump-misses-init -Wno-unsafe-buffer-usage \
-         -Wno-declaration-after-statement -Wno-c++-keyword -Wno-padded \
-         -I../include -I../src/internal -I../deps/donna
+STRICT_FLAGS ?=  -Weverything -Wno-jump-misses-init -Wno-unsafe-buffer-usage -Wno-declaration-after-statement -Wno-c++-keyword -Wno-padded
+CFLAGS = -std=c99 -O2 -g -I../include -I../src/internal -I../deps/donna $(STRICT_FLAGS)
 
 LDFLAGS = -L../lib -lcord
 TESTS_SRC := $(wildcard test_*.c)

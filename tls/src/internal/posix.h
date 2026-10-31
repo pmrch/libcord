@@ -8,7 +8,6 @@
 #define PRINTF_LIKE(idx, p) __attribute__((format(printf, idx, p)))
 
 typedef struct timespec tspec;
-typedef __uint128_t     u128;
 
 typedef struct {
     tspec  *start;

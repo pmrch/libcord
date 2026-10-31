@@ -2,7 +2,7 @@ ARCH ?= native
 CC = clang
 
 DEBUG_FLAGS = -g -O0 -fsanitize=address,leak,undefined -fno-omit-frame-pointer
-STRICT_FLAGS = -Weverything -Werror -Wno-unsafe-buffer-usage -Wno-declaration-after-statement -Wno-c++-keyword -Wno-padded
+STRICT_FLAGS ?= -Weverything -Werror -Wno-unsafe-buffer-usage -Wno-declaration-after-statement -Wno-c++-keyword -Wno-padded
 RFLAGS = -Rpass=regalloc -Rpass-missed=regalloc -Rpass-analysis=regalloc
 OPT = -O3 -march=$(ARCH)
 

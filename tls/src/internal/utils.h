@@ -1,7 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "abstraction.h"
 #include "constants.h"
 #include "types.h"
 

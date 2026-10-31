@@ -21,6 +21,8 @@ void fe_frombytes(const u8 *restrict bytes, u64 *restrict output) {
 }
 
 void fe_mul(const u64 *restrict a, u64 *restrict result, const u64 *restrict b) {
+    u64 carry = 0; // Reserved for later
+
     u128 sub_res1 = u128_add(mul_u64(a[2], b[1]), mul_u64(a[3], b[0]));
     u128 sub_res2 = u128_add(mul_u64(a[3], b[1]), mul_u64(a[4], b[0]));
 
@@ -56,7 +58,6 @@ void fe_mul(const u64 *restrict a, u64 *restrict result, const u64 *restrict b) 
     CARRY_NEXT(result, 2, add2, add3);
     CARRY_NEXT(result, 3, add3, add4);
 
-    u64 carry = 0;
     CARRY_LAST(result, 4, add4, carry);
 
     // THE FIX: We must propagate the carry from result[0] before we return!
@@ -65,6 +66,7 @@ void fe_mul(const u64 *restrict a, u64 *restrict result, const u64 *restrict b) 
 }
 
 void fe_sq(u64 *out, const u64 *a) {
+    u64      carry = 0; // Reserved for later
     LimbRepr limbs = {a[0], a[1], a[2], a[3], a[4]};
 
     u128 m0 = u128_add(mul_u64(limbs.t0, limbs.t0), mul_u64(limbs.t1, limbs.t4 * CROSS_P38));
@@ -85,7 +87,6 @@ void fe_sq(u64 *out, const u64 *a) {
     CARRY_NEXT(out, 2, m2, m3);
     CARRY_NEXT(out, 3, m3, m4);
 
-    u64 carry = 0;
     CARRY_LAST(out, 4, m4, carry);
 
     // THE FIX: We must propagate the carry from result[0] before we return!
