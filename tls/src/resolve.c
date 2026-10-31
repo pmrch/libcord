@@ -1,4 +1,5 @@
 #include "resolve.h"
+#include "constants.h"
 #include "log.h"
 #include "utils.h"
 
@@ -11,48 +12,49 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
-#define DECODED_ANSWERS 10
-
-#define QR 15
-#define OPCODE 11
-#define AA 10
-#define TC 9
-#define RD 8
-#define RA 7
-#define Z 4
+// #define EXTRACT4 0xF
+// #define EXTRACT3 0x7
 
 // NOLINTNEXTLINE readability-identifier-length
-static u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
+static inline u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
     u16 flags_total = (u16)((qr << QR) | (opcode << OPCODE) | (aa << AA) | (tc << TC) | (rd << RD) | (ra << RA) | (z << Z) | (rcode));
     return flags_total;
 }
 
-static u8 *encode_hostname(const char *hostname, u32 *final_len) {
+/*static inline Flags unpack_flags(u16 flags) { // clang-format off
+    return (Flags){
+        .qr     = (flags >> QR) & 1,
+        .opcode = (flags >> OPCODE) & EXTRACT4,
+        .aa     = (flags >> AA) & 1,
+        .tc     = (flags >> TC) & 1,
+        .rd     = (flags >> RD) & 1,
+        .ra     = (flags >> RA) & 1,
+        .z      = (flags >> Z) & EXTRACT3,
+        .rcode  = flags & EXTRACT4
+    };
+} // clang-format on*/
+
+static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *restrict buf) {
     const char *cur_dot  = NULL;
     const char *last_dot = NULL;
 
     int64_t all_diff = 0;
 
     // +1 for the prefix of the hostname and +1 for the null-terminator
-    *final_len   = (u32)(strlen(hostname) + 2);
-    uint8_t *buf = (u8 *)calloc(1, *final_len);
+    *final_len = (u32)(strlen(hostname) + 2);
+    LOG_VERBOSE("Got hostname %s to encode, with length of %u.", hostname, *final_len - 2);
 
-    LOG_VERBOSE("Got hostname %s to encode, with length of %u. Allocating a %u byte buffer", hostname, *final_len - 2, *final_len);
-    RET_ON_ERR(buf == NULL, NULL, "Failed to allocate %u bytes of memory for encoded hostname", *final_len);
-
-    // NOLINTBEGIN(altera-unroll-loops)
     buf[*final_len - 1] = '.';
     while ((cur_dot = strchr(hostname + all_diff, '.')) != NULL) {
         int64_t last_diff = (cur_dot - hostname); // Number of characters before the dot
 
         last_dot = cur_dot;
         all_diff += last_diff;
-
+        
         memcpy(buf + 1, hostname, (size_t)last_diff); // +1 offset to skip the first prefix byte
         hostname += last_diff;
 
         if (buf[0] == 0) { buf[0] = (u8)last_diff; } // If we get the first dot, insert the first prefix
-        // NOLINTEND(altera-unroll-loops)
     }
 
     // -2 because we skip prefix and null termination, and -1 for skipping the dot with the ++last_dot
@@ -61,51 +63,34 @@ static u8 *encode_hostname(const char *hostname, u32 *final_len) {
 
     // null-termination for end
     buf[*final_len - 1] = 0x00;
-    return buf;
 }
 
-static void print_encoded(const u8 *encoded, u64 len) {
+static inline void print_encoded(const u8 *encoded, u64 len) {
     // clang-format off
-    char *buf = (char *)malloc(len);
+    char buf[BITS32] = {0};
+
     const u8 *ptr = encoded;
     u64 off  = 0;
     // clang-format on
 
-    if (buf == NULL) { return; }
-
-    // NOLINTNEXTLINE
     for (size_t i = 0; i < len; i++) {
-        if (off + 4 > len) {
-            char *buf_old = buf;
-
-            buf = (char *)realloc(buf, (off << 1) - (off >> 1));
-            if (buf == NULL) { buf = buf_old; }
-        }
-
         int32_t res = snprintf(buf + off, len, "%02X ", ptr[i]);
         if (res >= 0) { off += (u64)res; }
     }
 
-    LOG_INFO("Encoded hostname: %s", buf);
-    free(buf);
+    buf[off - 1] = '\0';
+    LOG_DEBUG("Encoded hostname: %s", buf);
 }
 
-static u8 *create_packet(int32_t sock, u8 *restrict encoded, Lengths *lens) {
+static inline void create_packet(u8 *restrict encoded, Lengths *lens, u8 *restrict packet) {
     // Allocate buffer
+    // clang-format off
     u64 pk_size = sizeof(Header) + lens->encode_len + sizeof(Question);
-    u8 *packet  = (u8 *)malloc(pk_size);
-
     lens->packet_size = pk_size;
-
-    if (packet == NULL) {
-        LOG_ERROR("Failed to allocate packet buffer of %lu bytes", pk_size);
-        close(sock);
-        free(encoded);
-        return NULL;
-    }
 
     u16 net_id = generate_random_u16();
     LOG_DEBUG("ID for query transaction: %02X", net_id);
+    // clang-format on
 
     Header head  = {0};
     head.qdcount = htons(1);
@@ -115,25 +100,25 @@ static u8 *create_packet(int32_t sock, u8 *restrict encoded, Lengths *lens) {
     // Write the header to the packet
     memcpy(packet, &head, sizeof(Header));
     Question quest = {htons(1), htons(1)};
+    LOG_VERBOSE("Question: type=%#x, class=%#x", ntohs(quest.qtype), ntohs(quest.qclass));
 
     memcpy(packet + sizeof(Header), encoded, lens->encode_len);
     memcpy(packet + sizeof(Header) + lens->encode_len, &quest, sizeof(Question));
 
     lens->question_len = sizeof(quest) + lens->encode_len;
-    return packet;
 }
 
 // NOLINTBEGIN(concurrency-mt-unsafe)
-static u64 get_answer(int32_t sock, u8 *packet, u64 packet_size, saddr_in in_addr, u8 *answer) {
+static inline u64 get_answer(int32_t sock, u8 *restrict packet, u64 packet_size, saddr_in in_addr, u8 *restrict answer) {
     LOG_DEBUG("%s", "Sending DNS query message to nameserver...");
     int64_t sent = sendto(sock, packet, packet_size, 0, (saddr *)&in_addr, sizeof(in_addr));
 
     if (sent < 0) {
         LOG_ERROR("Failed to send message due to error: %s!", strerror(errno));
-        goto ret_bad;
+        return UINT64_MAX;
     }
 
-    LOG_INFO("%s", "Successfully sent message to DNS nameserver");
+    LOG_DEBUG("%s", "Successfully sent message to DNS nameserver");
     socklen_t addr_len = sizeof(in_addr);
 
     LOG_DEBUG("%s", "Receiving response from DNS nameserver...");
@@ -141,89 +126,88 @@ static u64 get_answer(int32_t sock, u8 *packet, u64 packet_size, saddr_in in_add
 
     if (recvd < 0) {
         LOG_ERROR("Failed to receive message due to error: %s!", strerror(errno));
-        goto ret_bad;
+        return UINT64_MAX;
     }
 
-    LOG_INFO("%s", "Successfully received a response from the DNS nameserver");
+    LOG_DEBUG("%s", "Successfully received a response from the DNS nameserver");
     return (u64)recvd;
-
-ret_bad:
-    close(sock);
-    free(packet);
-    return UINT64_MAX;
 }
 // NOLINTEND(concurrency-mt-unsafe)
 
-static u32 *decode_answers(Answer *answers, u8 *answers_buf, Lengths *lens) {
+static inline void decode_answers(Answer *restrict answers, u8 *restrict answers_buf, Lengths *restrict lens, u32 *restrict output) {
     if (answers == NULL || answers_buf == NULL) {
         LOG_ERROR("%s", "Input or output buffer for decoded answers was NULL!");
-        return NULL;
+        return;
     }
 
     Header head = {0};
     memcpy(&head, answers_buf, sizeof(Header));
 
     // clang-format off
-    LOG_DEBUG("{ id: %#x | flags: %#x | qdcount: %#x | ancount: %#x | arcount: %#x | nscount: %#x }",
+    LOG_VERBOSE("Answer header: id=%#x | flags=%#x | qdcount=%#x | ancount=%#x | arcount=%#x | nscount=%#x",
         ntohs(head.id), ntohs(head.flags), ntohs(head.qdcount), ntohs(head.ancount), ntohs(head.arcount), ntohs(head.nscount)
-    );
+    ); // clang-format on
 
     lens->decoded_answers = ntohs(head.ancount);
     LOG_DEBUG("Question length was %u", lens->question_len);
 
     // Answer offset
     u64 offset = 0;
-    u32 *output = (u32 *)malloc(MIN(lens->decoded_answers, DECODED_ANSWERS) * sizeof(u32));
-    if (output == NULL) {
-        LOG_ERROR("%s", "Failed to allocate memory for output addresses");
-        return NULL;
-    }
 
-#pragma unroll 3
+    u8 addr_buf[BITS16] = {0};
     for (int32_t i = 0; i < MIN(ntohs(head.ancount), DECODED_ANSWERS); i++) {
         Answer *cur_ans = &answers[i];
         memcpy(cur_ans, answers_buf + sizeof(head) + lens->question_len + offset, sizeof(Answer));
-        
+
         u32 ipv4_word = ntohl(cur_ans->rdata);
-        LOG_DEBUG("Answer %d IP: %s", i, get_formatted_ipv4(ipv4_word));
+        get_formatted_ipv4(ipv4_word, addr_buf);
+        LOG_DEBUG("Answer %d IP: %s", i, addr_buf);
 
         offset += sizeof(Answer);
         output[i] = ipv4_word;
     }
 
     LOG_DEBUG("Successfully decoded %u answers", lens->decoded_answers);
-    return output;
 }
 
-// NOLINTBEGIN(concurrency-mt-unsafe, altera-unroll-loops, bugprone-casting-through-void)
-u32 *get_addr_ipv4(const char *hostname) {
-    RET_ON_ERR(hostname == NULL, NULL, "%s", "Provided hostname was NULL!");
-    saddr_in in_addr = {.sin_family = AF_INET, .sin_port = htons(DNS_PORT), .sin_addr.s_addr = htonl(DNS_SERVER)};
+// NOLINTBEGIN(concurrency-mt-unsafe, bugprone-casting-through-void)
+void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num_results) {
+    if (hostname == NULL) {
+        LOG_ERROR("%s", "Provided hostname was NULL!");
+        return;
+    }
 
-    int32_t sock = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, IPPROTO_UDP);
-    RET_ON_ERR((sock == -1), NULL, "Failed to open socket: %s", strerror(errno));
+    saddr_in in_addr = {.sin_family = AF_INET, .sin_port = htons(DNS_PORT), .sin_addr.s_addr = htonl(DNS_SERVER)};
+    int32_t  sock_fd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, IPPROTO_UDP);
+
+    if (sock_fd == -1) {
+        LOG_ERROR("Failed to open socket: %s", strerror(errno));
+        return;
+    }
 
     // The number of bytes the hostname encode takes up
+    // clang-format off
     Lengths lens = {0};
+    u8 packet[BITS64] = {0};
+    // clang-format on
 
-    u8 *encoded = encode_hostname(hostname, &lens.encode_len);
-    u8 *packet  = create_packet(sock, encoded, &lens);
+    u8 encoded[BITS32] = {0};
+    encode_hostname(hostname, &lens.encode_len, encoded);
+
+    create_packet(encoded, &lens, packet);
     print_encoded(encoded, lens.encode_len);
-    free(encoded); // Only needed it to build the packet
-
-    RET_ON_ERR(packet == NULL, NULL, "%s", "Failed to create packet!");
     u8 ansbuf[UINT16_MAX] = {0};
 
     // Receive the answer if possible
-    u64 answer = get_answer(sock, packet, lens.packet_size, in_addr, ansbuf);
-    LOG_INFO("Received an answer of %lu bytes", answer);
+    u64 answer = get_answer(sock_fd, packet, lens.packet_size, in_addr, ansbuf);
+    LOG_DEBUG("Received an answer of %lu bytes", answer);
+    close(sock_fd);
+
+    if (answer == UINT64_MAX) { return; }
 
     // Store retrieved IP addresses
-    Answer  decoded[DECODED_ANSWERS] = {0};
-    u32 *ipv4_words = decode_answers(decoded, ansbuf, &lens);
-
-    // Cleanup for the end
-    close(sock);
-    return ipv4_words;
+    Answer decoded[DECODED_ANSWERS] = {0};
+    decode_answers(decoded, ansbuf, &lens, results);
+    *num_results = (u8)lens.decoded_answers;
 }
-// NOLINTEND(concurrency-mt-unsafe, altera-unroll-loops, bugprone-casting-through-void)
+// NOLINTEND(concurrency-mt-unsafe, bugprone-casting-through-void)
