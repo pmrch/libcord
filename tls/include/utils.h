@@ -95,15 +95,6 @@ typedef struct {
     u64 t0, t1, t2, t3;
 } Helper4u64;
 
-unsigned char *get_formatted_ipv4(u32 word);
-
-void u64_to_bytes(u64 value, u8 out[ONE_BYTE]);
-void ipv4_word_to_bytes(u32 word, u8 bytes[4]);
-void free_all(Freeable *objs, u64 num);
-
-u16 generate_random_u16(void);
-u64 u64_from_bytes_le(const u8 bytes[ONE_BYTE]);
-
 #ifndef HAS_UINT128
 u128 mul_u64(u64 left, u64 right);
 u128 u128_add(u128 left, u128 right);
@@ -120,14 +111,30 @@ static inline u64 u128_shr51(u128 term1) { return (u64)(term1 >> LIMB_SIZE); }
 
 #endif
 
-// NOLINTBEGIN(readability-identifier-length, readability-magic-numbers)
-void hex_to_bytes_le(const char *hex_str, uint8_t bytes[32]);
+unsigned char *get_formatted_ipv4(u32 word);
+
+void ipv4_word_to_bytes(u32 word, u8 bytes[4]);
+void free_all(Freeable *objs, u64 num);
+
+u16 generate_random_u16(void);
+
+void hex_to_bytes_le(const char *hex_str, uint8_t bytes[BITS32]);
 void hex_to_bytes(const char *hex, u8 *bytes);
-void bytes_to_fe51(const uint8_t bytes[32], u64 f[5]);
-// NOLINTEND(readability-identifier-length, readability-magic-numbers)
+void bytes_to_fe51(const uint8_t bytes[BITS32], u64 *restrict out);
 
 static inline u64 get_clk_ns(struct timespec *start, struct timespec *end) {
     return ((u64)(end->tv_sec - start->tv_sec) * ONE_BILLION) + (u64)(end->tv_nsec - start->tv_nsec);
+}
+
+static inline u64 u64_from_bytes_le(const u8 bytes[ONE_BYTE]) {
+    u64 result = (u64)bytes[0];
+    for (u8 i = 1; i < ONE_BYTE; i++) { result |= ((u64)bytes[i] << (ONE_BYTE * i)); }
+    return result;
+}
+
+static inline void u64_to_bytes(u64 value, u8 out[ONE_BYTE]) {
+    for (u8 i = 1; i < ONE_BYTE; i++) { out[i] = (u8)(value >> (ONE_BYTE * i)) & IPV4; }
+    out[0] = value & IPV4;
 }
 
 #endif

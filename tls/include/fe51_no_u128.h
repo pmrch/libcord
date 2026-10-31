@@ -2,6 +2,7 @@
 #define FE51_NO_U128_H
 
 #include "utils.h"
+#ifndef HAS_UIN128
 
 static inline pseudo_u128 shr128(pseudo_u128 num, unsigned shift) {
     pseudo_u128 result;
@@ -26,5 +27,6 @@ static inline void mul64(u64 term1, pseudo_u128 *out, u64 term2) {
     out->low_bits  = (products.t0 & MASK32) | (mid << BITS32);
     out->high_bits = (products.t1 >> BITS32) + (products.t2 >> BITS32) + (mid >> BITS32);
 }
+#endif
 
 #endif

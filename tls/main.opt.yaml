@@ -1,0 +1,329 @@
+--- !Passed
+Pass:            argpromotion
+Name:            ArgumentPromoted
+DebugLoc:        { File: 'include/utils.h', Line: 129, Column: 0 }
+Function:        get_clk_ns
+Args:
+  - String:          'promoting argument '
+  - ArgName:         ''
+  - String:          '('
+  - ArgIndex:        '0'
+  - String:          ')'
+  - String:          ' to pass by value'
+...
+--- !Passed
+Pass:            argpromotion
+Name:            ArgumentPromoted
+DebugLoc:        { File: 'include/utils.h', Line: 129, Column: 0 }
+Function:        get_clk_ns
+Args:
+  - String:          'promoting argument '
+  - ArgName:         ''
+  - String:          '('
+  - ArgIndex:        '1'
+  - String:          ')'
+  - String:          ' to pass by value'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: 'test/main.c', Line: 22, Column: 5 }
+Function:        test_fe
+Args:
+  - Callee:          hex_to_bytes
+  - String:          ' will not be inlined into '
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: 'test/main.c', Line: 23, Column: 5 }
+Function:        test_fe
+Args:
+  - Callee:          hex_to_bytes
+  - String:          ' will not be inlined into '
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: 'test/main.c', Line: 24, Column: 5 }
+Function:        test_fe
+Args:
+  - Callee:          hex_to_bytes
+  - String:          ' will not be inlined into '
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: 'test/main.c', Line: 32, Column: 5 }
+Function:        test_fe
+Args:
+  - Callee:          clock_gettime
+  - String:          ' will not be inlined into '
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: 'test/main.c', Line: 30, Column: 36 }
+Function:        test_fe
+Args:
+  - Callee:          curve25519
+  - String:          ' will not be inlined into '
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+Function:        test_fe
+Args:
+  - Callee:          clock_gettime
+  - String:          ' will not be inlined into '
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 5 }
+Function:        test_fe
+Args:
+  - Callee:          printf
+  - String:          ' will not be inlined into '
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Missed
+Pass:            inline
+Name:            NoDefinition
+DebugLoc:        { File: 'test/main.c', Line: 34, Column: 9 }
+Function:        test_fe
+Args:
+  - Callee:          curve25519
+  - String:          ' will not be inlined into '
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ' because its definition is unavailable'
+...
+--- !Passed
+Pass:            inline
+Name:            Inlined
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        test_fe
+Args:
+  - String:          ''''
+  - Callee:          get_clk_ns
+  - String:          ''' inlined into '''
+  - Caller:          test_fe
+    DebugLoc:        { File: 'test/main.c', Line: 10, Column: 0 }
+  - String:          ''''
+  - String:          ' with '
+  - String:          '(cost='
+  - Cost:            '-15030'
+  - String:          ', threshold='
+  - Threshold:       '487'
+  - String:          ')'
+  - String:          ' at callsite '
+  - String:          test_fe
+  - String:          ':'
+  - Line:            '39'
+  - String:          ':'
+  - Column:          '37'
+  - String:          ';'
+...
+--- !Passed
+Pass:            TTI
+Name:            DontUnroll
+DebugLoc:        { File: 'test/main.c', Line: 30, Column: 5 }
+Function:        test_fe
+Args:
+  - String:          'advising against unrolling the loop because it contains a '
+  - Call:            call
+    DebugLoc:        { File: 'test/main.c', Line: 30, Column: 36 }
+...
+--- !Passed
+Pass:            loop-unroll
+Name:            FullyUnrolled
+DebugLoc:        { File: 'test/main.c', Line: 30, Column: 5 }
+Function:        test_fe
+Args:
+  - String:          'completely unrolled loop with '
+  - UnrollCount:     '10'
+  - String:          ' iterations'
+...
+--- !Passed
+Pass:            TTI
+Name:            DontUnroll
+DebugLoc:        { File: 'test/main.c', Line: 33, Column: 5 }
+Function:        test_fe
+Args:
+  - String:          'advising against unrolling the loop because it contains a '
+  - Call:            call
+    DebugLoc:        { File: 'test/main.c', Line: 34, Column: 9 }
+...
+--- !Passed
+Pass:            loop-unroll
+Name:            FullyUnrolled
+DebugLoc:        { File: 'test/main.c', Line: 33, Column: 5 }
+Function:        test_fe
+Args:
+  - String:          'completely unrolled loop with '
+  - UnrollCount:     '2'
+  - String:          ' iterations'
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        test_fe
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        test_fe
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        test_fe
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        test_fe
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+...
+--- !Passed
+Pass:            inline
+Name:            Inlined
+DebugLoc:        { File: 'test/main.c', Line: 59, Column: 5 }
+Function:        main
+Args:
+  - String:          ''''
+  - Callee:          test_fe
+  - String:          ''' inlined into '''
+  - Caller:          main
+    DebugLoc:        { File: 'test/main.c', Line: 52, Column: 0 }
+  - String:          ''''
+  - String:          ' with '
+  - String:          '(cost='
+  - Cost:            '-14150'
+  - String:          ', threshold='
+  - Threshold:       '375'
+  - String:          ')'
+  - String:          ' at callsite '
+  - String:          main
+  - String:          ':'
+  - Line:            '7'
+  - String:          ':'
+  - Column:          '5'
+  - String:          ';'
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        main
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        main
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        main
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+...
+--- !Missed
+Pass:            gvn
+Name:            LoadClobbered
+DebugLoc:        { File: 'test/main.c', Line: 49, Column: 37 }
+Function:        main
+Args:
+  - String:          'load of type '
+  - Type:            i64
+  - String:          ' not eliminated'
+  - String:          ' because it is clobbered by '
+  - ClobberedBy:     call
+    DebugLoc:        { File: 'test/main.c', Line: 48, Column: 5 }
+...
+--- !Passed
+Pass:            slp-vectorizer
+Name:            VectorizedList
+DebugLoc:        { File: 'include/utils.h', Line: 130, Column: 84 }
+Function:        main
+Args:
+  - String:          'SLP vectorized with cost '
+  - Cost:            '-1'
+  - String:          ' and with tree size '
+  - TreeSize:        '3'
+...

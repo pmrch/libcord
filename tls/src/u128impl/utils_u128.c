@@ -87,28 +87,5 @@ void map_terms_to_limbs(u128 terms[LIMBS], fe51 result) {
 }
 
 #else
-void map_terms_to_limbs(u128 *restrict terms, u64 *restrict result) {
-    result[0] = (u64)(terms[0]) & MASK51;
-    terms[1] += terms[0] >> LIMB_SIZE;
-
-    result[1] = (u64)(terms[1]) & MASK51;
-    terms[2] += terms[1] >> LIMB_SIZE;
-
-    result[2] = (u64)(terms[2]) & MASK51;
-    terms[3] += terms[2] >> LIMB_SIZE;
-
-    result[3] = (u64)(terms[3]) & MASK51;
-    terms[4] += terms[3] >> LIMB_SIZE;
-
-    result[4] = (u64)(terms[4]) & MASK51;
-    u64 carry = (u64)(terms[4] >> LIMB_SIZE);
-
-    result[0] += (carry * PRIME);
-
-    // THE FIX: We must propagate the carry from result[0] before we return!
-    // Otherwise, result[0] might be > 2^51 when we exit.
-    result[1] += result[0] >> LIMB_SIZE;
-    result[0] &= MASK51;
-}
 
 #endif

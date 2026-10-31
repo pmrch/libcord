@@ -1,8 +1,8 @@
 #include "fe51.h"
 #include "crypt.h"
-#include "log.h"
 #include "utils.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 #define CROSS_P 2ULL
@@ -16,19 +16,21 @@
     write_to_retain(retain, carry##index); \
 } while (0)
 
-static inline void write_to_retain(u64 *value, const u64 TO_WRITE) {
+__attribute__((unused)) static inline void write_to_retain(u64 *value, const u64 TO_WRITE) {
     if (value == NULL) { return; }
     *value = TO_WRITE;
 }
 
+typedef struct {
+    u128 t0, t1, t2, t3, t4;
+} TempVals;
+
 // NOLINTBEGIN(readability-identifier-length, readability-magic-numbers)
 void fe_frombytes(const u8 *restrict bytes, u64 *restrict output) {
     u64 terms[4] = {0};
-    u8  slice[8] = {0};
-
     for (u8 i = 0; i < 4; i++) {
-        memcpy(slice, bytes + (i * ONE_BYTE), sizeof(slice));
-        u64 term = u64_from_bytes_le(slice);
+        u64 term;
+        memcpy(&term, bytes + (i * ONE_BYTE), sizeof(term));
         terms[i] = term;
     }
 
@@ -89,7 +91,7 @@ void fe_mul(const u64 *restrict a, u64 *restrict result, const u64 *restrict b) 
     result[0] &= MASK51;
 }
 
-void fe_sq(u64 *out, const u64 *a) { /*fe_mul(a, out, a);*/
+void fe_sq(u64 *out, const u64 *a) {
     LimbRepr limbs = {a[0], a[1], a[2], a[3], a[4]};
 
     u128 m0 = u128_add(mul_u64(limbs.t0, limbs.t0), mul_u64(limbs.t1, limbs.t4 * CROSS_P38));
@@ -128,12 +130,17 @@ void fe_sq(u64 *out, const u64 *a) { /*fe_mul(a, out, a);*/
     out[0] &= MASK51;
 }
 
-static inline void fe_pow2k(fe51 out, const fe51 input, u64 k) {
-    memcpy(out, input, sizeof(fe51));
+static inline void fe_pow2k(u64 *restrict out, const u64 *restrict input, u64 k) {
+    out[0] = input[0];
+    out[1] = input[1];
+    out[2] = input[2];
+    out[3] = input[3];
+    out[4] = input[4];
+
     for (u64 i = 0; i < k; i++) { fe_sq(out, out); }
 }
 
-void fe_pow22501(const fe51 z_2, fe51 *out) {
+static inline void fe_pow22501(const fe51 z_2, fe51 *out) {
     fe51 terms[20] = {0};
 
     // let t0  = self.square();
@@ -168,9 +175,11 @@ void fe_pow22501(const fe51 z_2, fe51 *out) {
     memcpy(out[1], terms[3], sizeof(terms[3]));
 }
 
-void fe_invert(fe51 out, const fe51 input) {
+void fe_invert(u64 *restrict out, const u64 *restrict input) {
     fe51 terms[3] = {0};
 
+    // fe_pow22501 fills: first 2 slots
+    // terms[2] is scratch for the fe_pow2k output.
     fe_pow22501(input, terms);
     fe_pow2k(terms[2], terms[0], 5);
     fe_mul(terms[2], out, terms[1]);

@@ -4,16 +4,15 @@
 #include "crypt.h"
 #include "utils.h"
 
-#ifndef HAS_UINT128
-#include "fe51_no_u128.h"
-#endif
-
 #define PRIME 19ULL
 
 #define p_01 0xFFFFFFFFFFFDAULL
 #define P 0xFFFFFFFFFFFFEUL
 
-#ifdef HAS_UINT128
+#ifndef HAS_UINT128
+#include "fe51_no_u128.h"
+
+#else
 static inline void mul64(u64 term0, u128 *out, u64 term1) { *out = ((u128)term0 * (u128)term1); }
 static inline u128 u128_shr(u128 num, const u8 SHIFT) { return num >> SHIFT; }
 
@@ -24,9 +23,7 @@ static inline u64 u128_low(u128 num) { return (u64)num; }
 
 // NOLINTBEGIN(readability-identifier-length)
 void fe_mul(const u64 *restrict a, u64 *restrict result, const u64 *restrict b);
-
-void fe_pow22501(const fe51 z_2, fe51 *out);
-void fe_invert(fe51 out, const fe51 input);
+void fe_invert(u64 *restrict out, const u64 *restrict input);
 void fe_sq(u64 *out, const u64 *a);
 
 void fe_frombytes(const u8 *restrict bytes, u64 *restrict output);

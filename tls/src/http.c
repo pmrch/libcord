@@ -28,7 +28,5 @@ void connect_to_server(const char *hostname) {
         return;
     }
 
-    u8 client_hello[] = {0x16, 0x03, 0x01, 0x00, 0x05, 0x01, 0x00, 0x00, 0x01, 0x03};
-
     free(addresses);
 }

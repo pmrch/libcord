@@ -3,7 +3,6 @@
 #include "log.h"
 #include "utils.h"
 
-#define MASK32 0xFFFFFFFF
 #define SHIFT32 32
 
 static unsigned char IPV4_BUF_SHARED[IPV4BUF] = {0};
@@ -30,17 +29,6 @@ unsigned char *get_formatted_ipv4(u32 word) {
         word >> OCT1 & IPV4, word >> OCT2 & IPV4, word >> OCT3 & IPV4, word & IPV4); // clang-format on
 
     return IPV4_BUF_SHARED;
-}
-
-u64 u64_from_bytes_le(const u8 bytes[ONE_BYTE]) {
-    u64 result = (u64)bytes[0];
-    for (u8 i = 1; i < ONE_BYTE; i++) { result |= ((u64)bytes[i] << (ONE_BYTE * i)); }
-    return result;
-}
-
-void u64_to_bytes(u64 value, u8 out[ONE_BYTE]) {
-    for (u8 i = 1; i < ONE_BYTE; i++) { out[i] = (u8)(value >> (ONE_BYTE * i)) & IPV4; }
-    out[0] = value & IPV4;
 }
 
 void ipv4_word_to_bytes(u32 word, u8 bytes[4]) {
@@ -78,7 +66,7 @@ void hex_to_bytes(const char *hex, u8 *bytes) {
 }
 
 // Convert 32 Little-Endian bytes into 5x51-bit limbs
-void bytes_to_fe51(const uint8_t bytes[32], u64 f[5]) {
+void bytes_to_fe51(const uint8_t bytes[32], u64 *restrict out) {
     // Load 64-bit integer chunks directly using bit shifts
     u64 h0 = (u64)bytes[0] | ((u64)bytes[1] << 8) | ((u64)bytes[2] << 16) | ((u64)bytes[3] << 24) | ((u64)bytes[4] << 32) |
              ((u64)bytes[5] << 40) | ((u64)bytes[6] << 48) | ((u64)bytes[7] << 56);
@@ -98,11 +86,11 @@ void bytes_to_fe51(const uint8_t bytes[32], u64 f[5]) {
     // Mask each limb to exactly 51 bits (0x7ffffffffffff)
     u64 mask = (1ULL << 51) - 1;
 
-    f[0] = h0 & mask;
-    f[1] = h1 & mask;
-    f[2] = h2 & mask;
-    f[3] = h3 & mask;
-    f[4] = h4 & mask;
+    out[0] = h0 & mask;
+    out[1] = h1 & mask;
+    out[2] = h2 & mask;
+    out[3] = h3 & mask;
+    out[4] = h4 & mask;
 }
 
 // NOLINTEND(readability-identifier-length, readability-magic-numbers)

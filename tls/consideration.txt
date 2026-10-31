@@ -1,0 +1,78 @@
+void fe_mul(const u64 *a, u64 *out ,const u64 *b) {
+    LimbRepr limbs = {a[0], a[1], a[2], a[3], a[4]};
+    TempVals temp_vals = {0};
+
+    // clang-format off
+    temp_vals.t0 = u128_add(mul_u64(a[2], b[1]), mul_u64(a[3], b[0])); // sub_res1
+    temp_vals.t1 = u128_add(mul_u64(a[3], b[1]), mul_u64(a[4], b[0])); // sub_res2
+    temp_vals.t2 = u128_add(mul_u64(a[0], b[2]), mul_u64(a[1], b[1])); // res1
+
+    // res 4, sub_res2 discardable (t1)
+    temp_vals.t3 = u128_add(mul_u64(a[2], b[2]), temp_vals.t1);
+
+    // Reuse slots, currently used { sub_res1, sub_res2, res1, res4 }
+    temp_vals.t1 = u128_add(mul_u64(a[0], b[3]), mul_u64(a[1], b[2]));
+    // res2, replaces old sub_res2, now used { sub_res1, res2, res1, res4 }
+
+    // sub_res1 becomes discardable, so replace with add3.
+    temp_vals.t0 = u128_add(temp_vals.t1, temp_vals.t0); // Now used { add3, res2, res1, res4 }
+
+    // add2 can discard res1, since it's last dependency.
+    temp_vals.t2 = u128_add(temp_vals.t2, mul_u64(a[2], b[0])); // Now used { add3, res2, add2, res4 }
+
+    // Replace res2 with res3, since it's not needed anymore
+    temp_vals.t1 = u128_add(mul_u64(a[0], b[4]), mul_u64(a[1], b[3])); // Now { add3, res3, add2, res4 }
+
+    // add4 makes res3 and res4 lose importance, discardable. Will replace res3. res4 is free now
+    temp_vals.t1 = u128_add(temp_vals.t1, temp_vals.t3); // { add3, add4, add2, res4 }
+
+    // Replace res4 with add1
+    temp_vals.t3 = u128_add(mul_u64(a[0], b[1]), mul_u64(a[1], b[0]));
+
+    // Finished temporary results. Now used { add3, add4, add2, add1, 0 }
+    temp_vals.t4 = temp_vals.t1; // { add3, add4, add2, add1, add4 }
+    temp_vals.t1 = temp_vals.t3; // { add3, add1, add2, add1, add4 }
+    temp_vals.t3 = temp_vals.t0; // { add3, add1, add2, add3, add4 }
+
+    // Current temp values { add3, add1, add2, add3, add4 }
+    temp_vals.t0 = mul_u64(a[0], b[0]); // Current { add0, add1, add2, add3, add4 }
+    // clang-format on
+
+    // reduce t5-t8 by multiplying by 19
+    temp_vals.t0 = u128_add(temp_vals.t0, mul_u64(a[1] * PRIME, b[4]));
+    temp_vals.t0 = u128_add(temp_vals.t0, mul_u64(a[2] * PRIME, b[3]));
+    temp_vals.t0 = u128_add(temp_vals.t0, mul_u64(a[3] * PRIME, b[2]));
+    temp_vals.t0 = u128_add(temp_vals.t0, mul_u64(a[4] * PRIME, b[1]));
+
+    temp_vals.t1 = u128_add(temp_vals.t1, mul_u64(a[2] * PRIME, b[4]));
+    temp_vals.t1 = u128_add(temp_vals.t1, mul_u64(a[3] * PRIME, b[3]));
+    temp_vals.t1 = u128_add(temp_vals.t1, mul_u64(a[4] * PRIME, b[2]));
+
+    temp_vals.t2 = u128_add(temp_vals.t2, mul_u64(a[3] * PRIME, b[4]));
+    temp_vals.t2 = u128_add(temp_vals.t2, mul_u64(a[4] * PRIME, b[3]));
+
+    temp_vals.t3 = u128_add(temp_vals.t3, mul_u64(a[4] * PRIME, b[4]));
+
+    // Map terms to radix-51 limbs
+    result[0]    = u128_low(temp_vals.t0) & MASK51;
+    temp_vals.t1 = u128_add(temp_vals.t1, u128_shr(temp_vals.t0, LIMB_SIZE));
+
+    result[1]    = u128_low(temp_vals.t1) & MASK51;
+    temp_vals.t2 = u128_add(temp_vals.t2, u128_shr(temp_vals.t1, LIMB_SIZE));
+
+    result[2]    = u128_low(temp_vals.t2) & MASK51;
+    temp_vals.t3 = u128_add(temp_vals.t3, u128_shr(temp_vals.t2, LIMB_SIZE));
+
+    result[3]    = u128_low(temp_vals.t3) & MASK51;
+    temp_vals.t4 = u128_add(temp_vals.t4, u128_shr(temp_vals.t3, LIMB_SIZE));
+
+    result[4]    = u128_low(temp_vals.t4) & MASK51;
+    temp_vals.t0 = u128_shr(temp_vals.t4, LIMB_SIZE); // Override add0 with carry
+
+    result[0] += (temp_vals.t0 * PRIME);
+
+    // THE FIX: We must propagate the carry from result[0] before we return!
+    // Otherwise, result[0] might be > 2^51 when we exit.
+    result[1] += result[0] >> LIMB_SIZE;
+    result[0] &= MASK51;
+}
