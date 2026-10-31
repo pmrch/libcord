@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-xc, -std=c99, -Iinclude]
+  Add: [-xc, -std=c99, -Iinclude, -Isrc/internal, -Ideps/donna]
