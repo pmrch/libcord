@@ -2,28 +2,11 @@
 #include "crypt.h"
 #include "utils.h"
 
-#include <stdlib.h>
 #include <string.h>
 
 #define CROSS_P 2ULL
 #define CROSS_P38 38ULL
 #define CROSS_P19 19ULL
-
-#define CARRY_NEXT(left, result, index, next, retain) do { \
-    u64 carry##index = u128_low(u128_shr(left, LIMB_SIZE)); \
-    (result)[(index)] = u128_low(left) & MASK51; \
-    (next) += carry##index; \
-    write_to_retain(retain, carry##index); \
-} while (0)
-
-__attribute__((unused)) static inline void write_to_retain(u64 *value, const u64 TO_WRITE) {
-    if (value == NULL) { return; }
-    *value = TO_WRITE;
-}
-
-typedef struct {
-    u128 t0, t1, t2, t3, t4;
-} TempVals;
 
 // NOLINTBEGIN(readability-identifier-length, readability-magic-numbers)
 void fe_frombytes(const u8 *restrict bytes, u64 *restrict output) {
@@ -68,27 +51,17 @@ void fe_mul(const u64 *restrict a, u64 *restrict result, const u64 *restrict b) 
     add3 = u128_add(add3, mul_u64(a[4] * PRIME, b[4]));
 
     // Map terms to radix-51 limbs
-    result[0] = (u64)(add0)&MASK51;
-    add1 += add0 >> LIMB_SIZE;
+    CARRY_NEXT(result, 0, add0, add1);
+    CARRY_NEXT(result, 1, add1, add2);
+    CARRY_NEXT(result, 2, add2, add3);
+    CARRY_NEXT(result, 3, add3, add4);
 
-    result[1] = (u64)(add1)&MASK51;
-    add2 += add1 >> LIMB_SIZE;
-
-    result[2] = (u64)(add2)&MASK51;
-    add3 += add2 >> LIMB_SIZE;
-
-    result[3] = (u64)(add3)&MASK51;
-    add4 += add3 >> LIMB_SIZE;
-
-    result[4] = (u64)(add4)&MASK51;
-    u64 carry = (u64)(add4 >> LIMB_SIZE);
-
-    result[0] += (carry * PRIME);
+    u64 carry = 0;
+    CARRY_LAST(result, 4, add4, carry);
 
     // THE FIX: We must propagate the carry from result[0] before we return!
     // Otherwise, result[0] might be > 2^51 when we exit.
-    result[1] += result[0] >> LIMB_SIZE;
-    result[0] &= MASK51;
+    REDUCE_FOLD(result, carry);
 }
 
 void fe_sq(u64 *out, const u64 *a) {
@@ -107,27 +80,17 @@ void fe_sq(u64 *out, const u64 *a) {
     m4 = u128_add(m4, mul_u64(limbs.t2, limbs.t2));
 
     // MAP
-    out[0] = (u64)(m0)&MASK51;
-    m1 += m0 >> LIMB_SIZE;
+    CARRY_NEXT(out, 0, m0, m1);
+    CARRY_NEXT(out, 1, m1, m2);
+    CARRY_NEXT(out, 2, m2, m3);
+    CARRY_NEXT(out, 3, m3, m4);
 
-    out[1] = (u64)(m1)&MASK51;
-    m2 += m1 >> LIMB_SIZE;
-
-    out[2] = (u64)(m2)&MASK51;
-    m3 += m2 >> LIMB_SIZE;
-
-    out[3] = (u64)(m3)&MASK51;
-    m4 += m3 >> LIMB_SIZE;
-
-    out[4]    = (u64)(m4)&MASK51;
-    u64 carry = (u64)(m4 >> LIMB_SIZE);
-
-    out[0] += (carry * PRIME);
+    u64 carry = 0;
+    CARRY_LAST(out, 4, m4, carry);
 
     // THE FIX: We must propagate the carry from result[0] before we return!
     // Otherwise, result[0] might be > 2^51 when we exit.
-    out[1] += out[0] >> LIMB_SIZE;
-    out[0] &= MASK51;
+    REDUCE_FOLD(out, carry);
 }
 
 static inline void fe_pow2k(u64 *restrict out, const u64 *restrict input, u64 k) {

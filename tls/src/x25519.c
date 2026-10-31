@@ -7,26 +7,16 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#define ALL_ZEROS 0x0000000000000000ULL
-#define ALL_ONES 0xFFFFFFFFFFFFFFFFULL
+void encode_u_coordinate(u8 *restrict bytes, u64 *restrict field_elem) {
+    u64 buf[4] = {0};
 
-#define A 486662
-#define A24 ((A - 2) / 4)
-
-#define BITS 255
-#define UP 9
-#define C19 19
-
-static u64 CHUNKS[4] = {0};
-
-void encode_u_coordinate(u8 *bytes, fe51 field_elem) {
     reduce(field_elem);
-    unpack_values(CHUNKS, field_elem);
+    unpack_values(buf, field_elem);
 
-    for (u8 i = 0; i < 4; i++) { u64_to_bytes(CHUNKS[i], bytes + (u64)(i * ONE_BYTE)); }
+    for (u8 i = 0; i < 4; i++) { u64_to_bytes(buf[i], bytes + (u64)(i * ONE_BYTE)); }
 }
 
-void reduce(fe51 field_elem) {
+void reduce(u64 *restrict field_elem) {
     carry_propagate(field_elem);
     carry_propagate(field_elem);
 
@@ -72,10 +62,10 @@ void carry_propagate(fe51 field_elem) {
     // Special step
     carry = field_elem[4] >> LIMB_SIZE;
     field_elem[4] &= MASK51;
-    field_elem[0] += carry * C19;
+    field_elem[0] += carry * PRIME;
 }
 
-void pack_values(const u64 vals[4], fe51 field_elem) {
+void pack_values(const u64 *restrict vals, u64 *restrict field_elem) {
     u64 steps_right[] = {LIMB_SIZE, (LIMB_SIZE - LIMB_STEP), (LIMB_SIZE - (2 * LIMB_STEP))};
     u64 steps_left[]  = {LIMB_STEP, (LIMB_STEP * 2), (LIMB_STEP * 3)};
 
@@ -87,7 +77,7 @@ void pack_values(const u64 vals[4], fe51 field_elem) {
     field_elem[4] = ((vals[3] >> (LIMB_SIZE - (LIMB_STEP * 3)))) & MASK51;
 }
 
-void unpack_values(u64 vals[4], const fe51 field_elem) {
+void unpack_values(u64 *restrict vals, const u64 *restrict field_elem) {
     u64 steps_left[]  = {(LIMB_SIZE - LIMB_STEP), (LIMB_SIZE - (2 * LIMB_STEP)), (LIMB_SIZE - (3 * LIMB_STEP))};
     u64 steps_right[] = {LIMB_STEP, (LIMB_STEP * 2), (LIMB_STEP * 3)};
 
@@ -95,17 +85,17 @@ void unpack_values(u64 vals[4], const fe51 field_elem) {
     for (u8 i = 1; i < 4; i++) { vals[i] = ((field_elem[i] >> steps_right[i - 1]) | (field_elem[i + 1] << steps_left[i - 1])); }
 }
 
-void decode_u_coordinate(fe51 field_elem, const u8 bytes[BYTES]) {
+void decode_u_coordinate(fe51 field_elem, const u8 bytes[BITS32]) {
     u8 byte_slice[ONE_BYTE] = {0}; // clang-format off
-    memset(CHUNKS, 0, sizeof(CHUNKS));
+    u64 buf[4] = {0}; // clang-format on
 
     for (u8 i = 0; i < 4; i++) {
         memcpy(byte_slice, bytes + (u64)(i * ONE_BYTE), ONE_BYTE);
-        CHUNKS[i] = u64_from_bytes_le(byte_slice);
+        buf[i] = u64_from_bytes_le(byte_slice);
     }
 
-    LOG_DEBUG("After loop vals: {%lu, %lu, %lu, %lu}", CHUNKS[0], CHUNKS[1], CHUNKS[2], CHUNKS[3]);
-    pack_values(CHUNKS, field_elem); // clang-format on
+    LOG_DEBUG("After loop vals: {%lu, %lu, %lu, %lu}", buf[0], buf[1], buf[2], buf[3]);
+    pack_values(buf, field_elem);
 }
 
 static inline void cswap(u64 *restrict x_2, u8 swap, u64 *restrict x_3) {
@@ -203,5 +193,5 @@ void curve25519(u8 *scalar_bytes, u8 *u_coord, u64 *restrict result) {
 
     fe51 z_inv = {0};
     fe_invert(z_inv, z_2);
-    MUL_PROPAGATE(x_2, z_inv, result);
+    fe_mul(x_2, result, z_inv);
 }

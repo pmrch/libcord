@@ -1,12 +1,13 @@
-#include "utils.h"
-
-#ifndef HAS_UINT128
-#include "crypt.h"
-#include "fe51_no_u128.h"
+#include "types.h"
 
 typedef struct {
     u64 p0, p1, p2, p3;
 } Products;
+
+#if !defined(__SIZEOF_INT128__)
+#include "crypt.h"
+#include "fe51_no_u128.h"
+#include "utils.h"
 
 // NOLINTBEGIN(readability-identifier-length)
 void fe_mul(const u64 *restrict a, u64 *restrict result, const u64 *restrict b) {

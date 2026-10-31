@@ -1,8 +1,8 @@
+#if !defined(__SIZEOF_INT128__)
+
 #include "crypt.h"
 #include "fe51.h"
 #include "utils.h"
-
-#ifndef HAS_UINT128
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 u128 u128_add(u128 left, u128 right) {
@@ -87,5 +87,7 @@ void map_terms_to_limbs(u128 terms[LIMBS], fe51 result) {
 }
 
 #else
+#include "platform.h"
+u128 u128_add(u128 left, u128 right);
 
 #endif
