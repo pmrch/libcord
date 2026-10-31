@@ -1,0 +1,26 @@
+name: ci
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install cland + lld + bear + git + make
+        run: sudo apt update && sudo apt install -y clang lld llvm make
+
+      - name: Build static lib
+        run: make static ARCH=x86-64-v3
+
+      - name: Build and run tests
+        run: make test
+
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y clang lld llvm make
+      - run: make static ARCH=x86-64-v3
+      - name: Run differential fuzz (10k iterations)
+        run: make -C tests test_fe

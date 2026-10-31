@@ -1,3 +1,6 @@
+#include "platform.h"
+u128 u128_add(u128 left, u128 right);
+
 #if !defined(__SIZEOF_INT128__)
 
 #include "crypt.h"
@@ -87,7 +90,5 @@ void map_terms_to_limbs(u128 terms[LIMBS], fe51 result) {
 }
 
 #else
-#include "platform.h"
-u128 u128_add(u128 left, u128 right);
 
 #endif

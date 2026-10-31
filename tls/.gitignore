@@ -1,4 +1,8 @@
 utils/tester/target
 perf.**
+
 deps/**/*.c
 deps/**.c
+
+deps/**/*.o
+deps/**.o

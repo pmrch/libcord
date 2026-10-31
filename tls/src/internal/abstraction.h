@@ -29,16 +29,10 @@
     } while (0)
 
 #if defined(__SIZEOF_INT128__)
-#ifndef HELPERS_H
-#define HELPERS_H
-
 typedef __uint128_t u128;
 
 #else
 typedef struct pseudo_u128 u128;
 
 #endif
-
-#endif
-
 #endif

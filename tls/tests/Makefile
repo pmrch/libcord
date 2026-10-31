@@ -12,7 +12,7 @@ TESTS := $(patsubst %.c,%,$(TESTS_SRC))
 
 all: $(TESTS)
 
-../deps/donna/curve25519_donna.o: ../deps/donna/curve25519_donna_c64.c
+../deps/donna/curve25519_donna.o: ../deps/donna/curve25519_donna.c
 	$(CC) $(DONNA_CFLAGS) -c $< -o $@
 
 test_fe: test_fe.c ../deps/donna/curve25519_donna.o
