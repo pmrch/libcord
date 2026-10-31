@@ -1,13 +1,8 @@
 #ifndef CURVE25519_DONNA_H
 #define CURVE25519_DONNA_H
 
-#include <stdint.h>
-
+#include "types.h"
 /* Define u8 if not already defined */
-#ifndef U8_DEFINED
-#define U8_DEFINED
-typedef uint8_t u8;
-#endif
 
 /**
  * Computes the Curve25519 public key or shared secret.
