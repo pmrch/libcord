@@ -17,6 +17,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang lld llvm bear make
 
+      - name: Acquire donna X25519 impl
+        run: make get_donna
+
       - name: Build static library
         run: make static ARCH=x86-64-v3 STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
 
