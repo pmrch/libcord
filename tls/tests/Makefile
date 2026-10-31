@@ -1,7 +1,7 @@
 CC = clang
 
 DONNA_CFLAGS = -std=c99 -O2 -w
-CFLAGS = -std=c23 -O2 -g -Weverything -Wno-jump-misses-init -Wno-unsafe-buffer-usage \
+CFLAGS = -std=c99 -O2 -g -Weverything -Wno-jump-misses-init -Wno-unsafe-buffer-usage \
          -Wno-declaration-after-statement -Wno-c++-keyword -Wno-padded \
          -I../include -I../src/internal -I../deps/donna
 
