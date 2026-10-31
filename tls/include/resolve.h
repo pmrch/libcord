@@ -1,10 +1,7 @@
 #ifndef RESOLVE_H
 #define RESOLVE_H
 
-#define DNS_SERVER 0x01010101 // 1.1.1.1
-#define DNS_PORT 53
-
-#include "utils.h"
+#include "types.h"
 
 #ifndef _WIN32
 #include "resolve_unix.h"
@@ -60,6 +57,6 @@ typedef struct {
     u32 encode_len;
 } Lengths;
 
-u32 *get_addr_ipv4(const char *hostname);
+void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num_results);
 
 #endif

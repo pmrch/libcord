@@ -1,8 +1,8 @@
-#ifndef FE51_NO_U128_H
+#if !defined(FE51_NO_U128_H)
 #define FE51_NO_U128_H
 
-#include "utils.h"
-#ifndef HAS_UIN128
+#if !defined(__SIZEOF_INT128__)
+#include "types.h"
 
 static inline pseudo_u128 shr128(pseudo_u128 num, unsigned shift) {
     pseudo_u128 result;

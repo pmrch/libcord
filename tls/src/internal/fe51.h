@@ -1,15 +1,31 @@
 #ifndef FE51_H
 #define FE51_H
 
-#include "crypt.h"
-#include "utils.h"
+#include "platform.h"
+#include "types.h"
 
-#define PRIME 19ULL
+#define CARRY_NEXT(result, index, current, next) do { \
+    (result)[(index)] = u128_low(current) & MASK51; \
+    (next) = u128_add((next), u128_shr(current, LIMB_SIZE)); \
+} while (0)
 
-#define p_01 0xFFFFFFFFFFFDAULL
-#define P 0xFFFFFFFFFFFFEUL
+#define CARRY_LAST(result, index, current, out) do { \
+    (result)[(index)] = u128_low(current) & MASK51; \
+    (out) = (u64)(u128_shr(current, LIMB_SIZE)); \
+} while (0)
 
-#ifndef HAS_UINT128
+#define REDUCE_FOLD(x, carry) do { \
+    (x)[0] += (carry) * PRIME; \
+    (x)[1] += (x)[0] >> LIMB_SIZE; \
+    (x)[0] &= MASK51; \
+} while (0)
+
+#define COPY_LIMBS(in, out) do { \
+    (out)[0] = (in)[0]; (out)[1] = (in)[1]; (out)[2] = (in)[2]; \
+    (out)[3] = (in)[3]; (out)[4] = (in)[4];\
+} while (0)
+
+#if !defined(__SIZEOF_INT128__)
 #include "fe51_no_u128.h"
 
 #else

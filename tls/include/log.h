@@ -18,6 +18,8 @@
 #define LOG_WARN(fmt, ...) (log("\x1b[33m", 3, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
 #define LOG_ERROR(fmt, ...) (log("\x1b[31m", 4, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
 
+#define LOGTYPE static inline void PRINTF_LIKE(6, 7)
+
 // clang-format off
 static const char *get_level(int32_t level) {
     switch (level) {
@@ -30,9 +32,7 @@ static const char *get_level(int32_t level) {
     }
 }
 // clang-format on
-
-static inline void PRINTF_LIKE(6, 7)
-    log(const char *color, int32_t level, const char *func, int32_t line, const char *const FIL, const char *fmt, ...) {
+LOGTYPE log(const char *color, int32_t level, const char *func, int32_t line, const char *const FIL, const char *fmt, ...) {
     if (level < LOG_LEVEL) { return; }
 
     va_list args;
