@@ -10,8 +10,8 @@
 typedef struct timespec tspec;
 
 typedef struct {
-    tspec  *start;
-    tspec  *end;
+    tspec   start;
+    tspec   end;
     double *extra;
 } Timer;
 

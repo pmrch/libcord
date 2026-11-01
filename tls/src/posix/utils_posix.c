@@ -31,7 +31,7 @@ int8_t generate_random_bytes(u64 num_bytes, u8 *restrict buffer) {
     return 0;
 }
 
-void   start_timer(Timer *timer) { clock_gettime(CLOCK_MONOTONIC, timer->start); }
-void   end_timer(Timer *timer) { clock_gettime(CLOCK_MONOTONIC, timer->end); }
-double get_timer_ns(Timer *timer) { return get_clk_ns(timer->start, timer->end); }
+void   start_timer(Timer *timer) { clock_gettime(CLOCK_MONOTONIC, &timer->start); }
+void   end_timer(Timer *timer) { clock_gettime(CLOCK_MONOTONIC, &timer->end); }
+double get_timer_ns(Timer *timer) { return get_clk_ns(&timer->start, &timer->end); }
 // NOLINTEND(concurrency-mt-unsafe)
