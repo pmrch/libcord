@@ -3,19 +3,12 @@ name: ci
 on: [push, pull_request]
 
 jobs:
-  fuzz:
+  build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: tls
-
+    container: alpine:latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y clang lld llvm bear make
+      - run: apk add clang lld llvm make
       - run: make static ARCH=x86-64-v3 STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
-      - run: make get_donna
-      - name: Differential fuzz (10k iterations)
-        run: make -C tests test_fe STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
+      - run: make -C tests test_fe STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
       - run: make -C tests test STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
