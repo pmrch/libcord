@@ -1,10 +1,9 @@
-ARCH ?= native
 CC = clang
 
 DEBUG_FLAGS = -g -O0 -fsanitize=address,leak,undefined -fno-omit-frame-pointer
 STRICT_FLAGS ?= -Weverything -Wall -Werror -Wno-unsafe-buffer-usage -Wno-declaration-after-statement -Wno-c++-keyword -Wno-padded
 RFLAGS = -Rpass=regalloc -Rpass-missed=regalloc -Rpass-analysis=regalloc
-OPT = -O3 -march=$(ARCH)
+OPT = -O3 -march=native
 
 #CFLAGS = -std=c23 $(DEBUG_FLAGS) -D_POSIX_C_SOURCE=200809L -DLOG_LEVEL=2 -xc $(STRICT_FLAGS)
 CFLAGS = -std=c99 $(OPT) -D_POSIX_C_SOURCE=200809L -DLOG_LEVEL=2 -xc $(STRICT_FLAGS)

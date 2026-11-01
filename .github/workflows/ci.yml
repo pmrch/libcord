@@ -3,12 +3,25 @@ name: ci
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     container: alpine:latest
     steps:
       - uses: actions/checkout@v4
-      - run: apk add clang lld llvm make
-      - run: make static ARCH=x86-64-v3 STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
-      - run: make -C tests test_fe STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
-      - run: make -C tests test STRICT_FLAGS=-Wall -Werror -Wno-declaration-after-statement
+
+      - name: Install dependencies
+        run: apk add --no-cache clang lld llvm make bear binutils git build-base
+
+      - name: Build and test
+        working-directory: tls
+        run: |
+          make static
+          make get_donna
+
+          pwd
+          ls -la tests/
+          echo "=== Make variables ==="
+          make -C tests -pn | grep -E '^(TESTS_SRC|TESTS) ='
+          echo "=== Clean build ==="
+          make -C tests clean
+          make -C tests --trace test

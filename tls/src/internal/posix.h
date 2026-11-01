@@ -15,7 +15,7 @@ typedef struct {
     double *extra;
 } Timer;
 
-static inline double get_clk_ns(struct timespec *start, struct timespec *end) {
+static inline double get_clk_ns(tspec *start, tspec *end) {
     return ((double)(end->tv_sec - start->tv_sec) * ONE_BILLION) + (double)(end->tv_nsec - start->tv_nsec);
 }
 
