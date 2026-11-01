@@ -18,10 +18,9 @@ jobs:
           make static
           make get_donna
 
-          pwd
-          ls -la tests/
           echo "=== Make variables ==="
-          make -C tests -pn | grep -E '^(TESTS_SRC|TESTS) ='
+          make -pn | grep -E '^(TESTS_SRC|TESTS) =' || true
+
           echo "=== Clean build ==="
-          make -C tests clean
-          make -C tests --trace test
+          make clean
+          make --trace test
