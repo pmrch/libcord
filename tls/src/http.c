@@ -28,4 +28,6 @@ void connect_to_server(const char *hostname) {
         LOG_ERROR("Failed to connect to server: %s", ipv);
         return;
     }
+
+    
 }

@@ -7,16 +7,30 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-void encode_u_coordinate(u8 *restrict bytes, u64 *restrict field_elem) {
-    u64 buf[4] = {0};
+static inline void carry_propagate(u64 *restrict field_elem) {
+    u64 carry = field_elem[0] >> LIMB_SIZE;
+    field_elem[0] &= MASK51;
+    field_elem[1] += carry;
 
-    reduce(field_elem);
-    unpack_values(buf, field_elem);
+    carry = field_elem[1] >> LIMB_SIZE;
+    field_elem[1] &= MASK51;
+    field_elem[2] += carry;
 
-    for (u8 i = 0; i < 4; i++) { u64_to_bytes(buf[i], bytes + (u64)(i * ONE_BYTE)); }
+    carry = field_elem[2] >> LIMB_SIZE;
+    field_elem[2] &= MASK51;
+    field_elem[3] += carry;
+
+    carry = field_elem[3] >> LIMB_SIZE;
+    field_elem[3] &= MASK51;
+    field_elem[4] += carry;
+
+    // Special step
+    carry = field_elem[4] >> LIMB_SIZE;
+    field_elem[4] &= MASK51;
+    field_elem[0] += carry * PRIME;
 }
 
-void reduce(u64 *restrict field_elem) {
+static inline void reduce(u64 *restrict field_elem) {
     carry_propagate(field_elem);
     carry_propagate(field_elem);
 
@@ -42,47 +56,38 @@ void reduce(u64 *restrict field_elem) {
     field_elem[4] &= MASK51;
 }
 
-void carry_propagate(fe51 field_elem) {
-    u64 carry = field_elem[0] >> LIMB_SIZE;
-    field_elem[0] &= MASK51;
-    field_elem[1] += carry;
+// NOLINTBEGIN(readability-magic-numbers)
+static inline void clamp_scalar(u8 *restrict bytes) {
+    bytes[0] &= 248;
+    bytes[31] &= 127;
+    bytes[31] |= 64;
+}
+// NOLINTEND(readability-magic-numbers)
 
-    carry = field_elem[1] >> LIMB_SIZE;
-    field_elem[1] &= MASK51;
-    field_elem[2] += carry;
-
-    carry = field_elem[2] >> LIMB_SIZE;
-    field_elem[2] &= MASK51;
-    field_elem[3] += carry;
-
-    carry = field_elem[3] >> LIMB_SIZE;
-    field_elem[3] &= MASK51;
-    field_elem[4] += carry;
-
-    // Special step
-    carry = field_elem[4] >> LIMB_SIZE;
-    field_elem[4] &= MASK51;
-    field_elem[0] += carry * PRIME;
+static inline void cswap(u64 *restrict x_2, u8 swap, u64 *restrict x_3) {
+    u64 mask = 0 - ((u64)swap);
+    for (u8 i = 0; i < LIMBS; i++) {
+        u64 dummy = mask & (x_2[i] ^ x_3[i]);
+        x_2[i] ^= dummy;
+        x_3[i] ^= dummy;
+    }
 }
 
-void pack_values(const u64 *restrict vals, u64 *restrict field_elem) {
-    u64 steps_right[] = {LIMB_SIZE, (LIMB_SIZE - LIMB_STEP), (LIMB_SIZE - (2 * LIMB_STEP))};
-    u64 steps_left[]  = {LIMB_STEP, (LIMB_STEP * 2), (LIMB_STEP * 3)};
-
-    LOG_DEBUG("In pack_values vals: {%lu, %lu, %lu, %lu}", vals[0], vals[1], vals[2], vals[3]);
-    field_elem[0] = vals[0] & MASK51;
-
-    for (u8 i = 1; i < 4; i++) { field_elem[i] = ((vals[i - 1] >> steps_right[i - 1]) | (vals[i] << steps_left[i - 1])) & MASK51; }
-
-    field_elem[4] = ((vals[3] >> (LIMB_SIZE - (LIMB_STEP * 3)))) & MASK51;
-}
-
-void unpack_values(u64 *restrict vals, const u64 *restrict field_elem) {
+static inline void unpack_values(u64 *restrict vals, const u64 *restrict field_elem) {
     u64 steps_left[]  = {(LIMB_SIZE - LIMB_STEP), (LIMB_SIZE - (2 * LIMB_STEP)), (LIMB_SIZE - (3 * LIMB_STEP))};
     u64 steps_right[] = {LIMB_STEP, (LIMB_STEP * 2), (LIMB_STEP * 3)};
 
     vals[0] = field_elem[0] | (field_elem[1] << LIMB_SIZE);
     for (u8 i = 1; i < 4; i++) { vals[i] = ((field_elem[i] >> steps_right[i - 1]) | (field_elem[i + 1] << steps_left[i - 1])); }
+}
+
+void encode_u_coordinate(u8 *restrict bytes, u64 *restrict field_elem) {
+    u64 buf[4] = {0};
+
+    reduce(field_elem);
+    unpack_values(buf, field_elem);
+
+    for (u8 i = 0; i < 4; i++) { u64_to_bytes(buf[i], bytes + (u64)(i * ONE_BYTE)); }
 }
 
 void decode_u_coordinate(fe51 field_elem, const u8 bytes[BITS32]) {
@@ -98,22 +103,6 @@ void decode_u_coordinate(fe51 field_elem, const u8 bytes[BITS32]) {
     pack_values(buf, field_elem);
 }
 
-static inline void cswap(u64 *restrict x_2, u8 swap, u64 *restrict x_3) {
-    u64 mask = 0 - ((u64)swap);
-    for (u8 i = 0; i < LIMBS; i++) {
-        u64 dummy = mask & (x_2[i] ^ x_3[i]);
-        x_2[i] ^= dummy;
-        x_3[i] ^= dummy;
-    }
-}
-
-// NOLINTBEGIN(readability-magic-numbers)
-void clamp_scalar(u8 *restrict bytes) {
-    bytes[0] &= 248;
-    bytes[31] &= 127;
-    bytes[31] |= 64;
-}
-// NOLINTEND(readability-magic-numbers)
 static u8 get_scalar_bit(const fe51 kurva, int32_t index) {
     int32_t limb = index / (int32_t)LIMB_SIZE;
     int32_t bit  = index % (int32_t)LIMB_SIZE;

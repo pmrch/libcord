@@ -13,27 +13,11 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
-// #define EXTRACT4 0xF
-// #define EXTRACT3 0x7
-
 // NOLINTNEXTLINE readability-identifier-length
 static inline u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
     u16 flags_total = (u16)((qr << QR) | (opcode << OPCODE) | (aa << AA) | (tc << TC) | (rd << RD) | (ra << RA) | (z << Z) | (rcode));
     return flags_total;
 }
-
-/*static inline Flags unpack_flags(u16 flags) { // clang-format off
-    return (Flags){
-        .qr     = (flags >> QR) & 1,
-        .opcode = (flags >> OPCODE) & EXTRACT4,
-        .aa     = (flags >> AA) & 1,
-        .tc     = (flags >> TC) & 1,
-        .rd     = (flags >> RD) & 1,
-        .ra     = (flags >> RA) & 1,
-        .z      = (flags >> Z) & EXTRACT3,
-        .rcode  = flags & EXTRACT4
-    };
-} // clang-format on*/
 
 static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *restrict buf) {
     const char *cur_dot  = NULL;
