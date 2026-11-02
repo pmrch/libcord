@@ -1,4 +1,4 @@
-/*#include "http.h"
+#include "http.h"
 #include "log.h"
 #include "resolve.h"
 #include "utils.h"
@@ -31,4 +31,3 @@ void connect_to_server(const char *hostname) {
 
     
 }
-*/

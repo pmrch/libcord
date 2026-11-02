@@ -2,6 +2,8 @@
 #define CDISCORD_POSIX_H
 
 #include "constants.h"
+#include "types.h"
+
 #include <sys/time.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -17,6 +19,9 @@ typedef struct {
     tspec   end;
     double *extra;
 } Timer;
+
+typedef const u8 *packet_t;
+typedef u8 *answer_t;
 
 static inline double get_clk_ns(tspec *start, tspec *end) {
     return ((double)(end->tv_sec - start->tv_sec) * ONE_BILLION) + (double)(end->tv_nsec - start->tv_nsec);

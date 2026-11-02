@@ -69,6 +69,11 @@ typedef int socklen_t;
 #else
 #define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
 typedef int32_t sock_type_t;
+typedef __socklen_t socklen_t;
+
+#define sock_close(fd) do {\
+    close(sock_fd); \
+} while (0)
 
 #endif
 

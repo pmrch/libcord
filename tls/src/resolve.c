@@ -11,7 +11,7 @@
 
 // NOLINTNEXTLINE readability-identifier-length
 static inline u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
-    u16 flags_total = (u16)((qr << QR) | (opcode << OPCODE) | (aa << AA) | (tc << TC) | (rd << RD) | (ra << RA) | (z << Z) | (rcode));
+    u16 flags_total = (u16)((qr << QR) | (opcode << OPCODE) | (aa << AA) | (tc << TC) | (rd << RD) | (ra << RA) | (z << Z) | rcode);
     return flags_total;
 }
 
@@ -67,7 +67,7 @@ static inline void create_packet(u8 *restrict encoded, Lengths *lens, u8 *restri
     // Allocate buffer
     // clang-format off
     u64 pk_size = sizeof(Header) + lens->encode_len + sizeof(Question);
-    lens->packet_size = pk_size;
+    lens->packet_size = (socklen_t)pk_size;
 
     u16 net_id = generate_random_u16();
     LOG_DEBUG("ID for query transaction: %02X", net_id);

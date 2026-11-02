@@ -32,4 +32,6 @@ u128 u128_shr51(u128 num_a) {
 
 #else
 
+__attribute__((unused)) static void dont_flag(void) {}
+
 #endif

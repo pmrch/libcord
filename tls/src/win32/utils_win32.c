@@ -1,3 +1,5 @@
+#ifdef _MSC_VER
+
 #include "log.h"
 #include "platform.h"
 #include "utils.h"
@@ -31,3 +33,7 @@ double get_timer_ns(Timer *timer) {
     double result         = ((double)elapsed.QuadPart) / ((double)timer->freq.QuadPart);
     return result * ONE_BILLION;
 }
+
+#endif
+
+__attribute__((unused)) static void dont_flag(void) {}

@@ -1,16 +1,9 @@
 CompileFlags:
   Add: 
-    - "xc" 
-    - "std=c99"
+    - "-xc" 
+    - "-std=c99"
     - "-Iinclude" 
     - "-Isrc/internal" 
     - "-Ideps/donna"
-    - "--target=x86_64-pc-windows-msvc"
-    - "-fms-compatibility"
-    - "-fdelayed-template-parsing"
-    - "-D_CRT_SECURE_NO_WARNINGS"
-    - "-Isystem"
     - "-Wno-declaration-after-statement"
-    - "-U__SIZEOF_INT128__"
-  CompilationDatabase: build
-  Compiler: clang-cl
+  Compiler: clang
