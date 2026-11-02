@@ -10,13 +10,16 @@
 #include <stdio.h>
 
 #include "platform.h"
-#undef stderr
 
-#define LOG_VERBOSE(fmt, ...) (log("\x1b[35m", 0, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
-#define LOG_DEBUG(fmt, ...) (log("\x1b[36m", 1, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
-#define LOG_INFO(fmt, ...) (log("\x1b[32m", 2, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
-#define LOG_WARN(fmt, ...) (log("\x1b[33m", 3, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
-#define LOG_ERROR(fmt, ...) (log("\x1b[31m", 4, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
+#ifndef _MSC_VER
+#undef stderr
+#endif
+
+#define LOG_VERBOSE(fmt, ...) (log_internal("\x1b[35m", 0, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
+#define LOG_DEBUG(fmt, ...) (log_internal("\x1b[36m", 1, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
+#define LOG_INFO(fmt, ...) (log_internal("\x1b[32m", 2, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
+#define LOG_WARN(fmt, ...) (log_internal("\x1b[33m", 3, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
+#define LOG_ERROR(fmt, ...) (log_internal("\x1b[31m", 4, __FUNCTION__, __LINE__, __FILE__, fmt, __VA_ARGS__))
 
 #define LOGTYPE static inline void PRINTF_LIKE(6, 7)
 
@@ -32,7 +35,7 @@ static const char *get_level(int32_t level) {
     }
 }
 // clang-format on
-LOGTYPE log(const char *color, int32_t level, const char *func, int32_t line, const char *const FIL, const char *fmt, ...) {
+LOGTYPE log_internal(const char *color, int32_t level, const char *func, int32_t line, const char *const FIL, const char *fmt, ...) {
     if (level < LOG_LEVEL) { return; }
 
     va_list args;

@@ -9,7 +9,6 @@
 #endif
 
 #if !defined(__SIZEOF_INT128__)
-u128 mul_u64(u64 left, u64 right);
 u128 u128_add(u128 left, u128 right);
 u128 u128_add_u64(u128 num_a, u64 num_b);
 

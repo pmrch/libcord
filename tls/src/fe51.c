@@ -1,5 +1,5 @@
 #include "fe51.h"
-#include "crypt.h"
+#include "types.h"
 #include "utils.h"
 
 #include <string.h>

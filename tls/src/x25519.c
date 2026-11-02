@@ -2,10 +2,10 @@
 #include "fe51.h"
 #include "log.h"
 #include "utils.h"
+#include "platform.h"
 
 #include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
+
 
 static inline void carry_propagate(u64 *restrict field_elem) {
     u64 carry = field_elem[0] >> LIMB_SIZE;

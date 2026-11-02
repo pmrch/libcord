@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Patrik\\code\\C\\libcord\\tls\\src\\u128impl\\fe51_u128.c||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\u128impl\\fe51_u128.c||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Patrik\\code\\C\\libcord\\tls\\src\\fe51.c||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\fe51.c||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Patrik\\code\\C\\libcord\\tls\\include\\resolve.h||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:include\\resolve.h||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Patrik\\code\\C\\libcord\\tls\\include\\log.h||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:include\\log.h||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "fe51_u128.c",
+              "DocumentMoniker": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\src\\u128impl\\fe51_u128.c",
+              "RelativeDocumentMoniker": "src\\u128impl\\fe51_u128.c",
+              "ToolTip": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\src\\u128impl\\fe51_u128.c",
+              "RelativeToolTip": "src\\u128impl\\fe51_u128.c",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2026-11-02T20:36:30.193Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "resolve.h",
+              "DocumentMoniker": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\include\\resolve.h",
+              "RelativeDocumentMoniker": "include\\resolve.h",
+              "ToolTip": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\include\\resolve.h",
+              "RelativeToolTip": "include\\resolve.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-11-02T20:36:24.08Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "log.h",
+              "DocumentMoniker": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\include\\log.h",
+              "RelativeDocumentMoniker": "include\\log.h",
+              "ToolTip": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\include\\log.h",
+              "RelativeToolTip": "include\\log.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-11-02T20:36:22.259Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "fe51.c",
+              "DocumentMoniker": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\src\\fe51.c",
+              "RelativeDocumentMoniker": "src\\fe51.c",
+              "ToolTip": "C:\\Users\\Patrik\\code\\C\\libcord\\tls\\src\\fe51.c",
+              "RelativeToolTip": "src\\fe51.c",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2026-11-02T20:35:59.149Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

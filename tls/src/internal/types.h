@@ -28,7 +28,7 @@ typedef struct {
 } LimbRepr;
 
 #if !defined(__SIZEOF_INT128__)
-typedef struct pseudo_u128 u128;
+typedef pseudo_u128 u128;
 #else
 typedef __uint128_t u128;
 #endif

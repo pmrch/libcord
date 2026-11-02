@@ -29,7 +29,6 @@
 #include "fe51_no_u128.h"
 
 #else
-static inline void mul64(u64 term0, u128 *out, u64 term1) { *out = ((u128)term0 * (u128)term1); }
 static inline u128 u128_shr(u128 num, const u8 SHIFT) { return num >> SHIFT; }
 
 static inline u64 u128_shr64(u128 num, const u8 SHIFT) { return (u64)(num >> SHIFT); }

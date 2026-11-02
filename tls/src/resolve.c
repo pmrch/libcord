@@ -8,10 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-
-#include <sys/socket.h>
-#include <sys/time.h>
 
 // NOLINTNEXTLINE readability-identifier-length
 static inline u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
@@ -94,7 +90,7 @@ static inline void create_packet(u8 *restrict encoded, Lengths *lens, u8 *restri
 }
 
 // NOLINTBEGIN(concurrency-mt-unsafe)
-static inline u64 get_answer(int32_t sock, u8 *restrict packet, u64 packet_size, saddr_in in_addr, u8 *restrict answer) {
+static u64 get_answer(sock_type_t sock, packet_t restrict packet, socklen_t packet_size, saddr_in in_addr, answer_t restrict answer) {
     LOG_DEBUG("%s", "Sending DNS query message to nameserver...");
     int64_t sent = sendto(sock, packet, packet_size, 0, (saddr *)&in_addr, sizeof(in_addr));
 
@@ -162,8 +158,8 @@ void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num
         return;
     }
 
-    saddr_in in_addr = {.sin_family = AF_INET, .sin_port = htons(DNS_PORT), .sin_addr.s_addr = htonl(DNS_SERVER)};
-    int32_t  sock_fd = socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, IPPROTO_UDP);
+    saddr_in    in_addr = {.sin_family = AF_INET, .sin_port = htons(DNS_PORT), .sin_addr.s_addr = htonl(DNS_SERVER)};
+    sock_type_t sock_fd = socket(AF_INET, RSOCK_TYPE, IPPROTO_UDP);
 
     if (sock_fd == -1) {
         LOG_ERROR("Failed to open socket: %s", strerror(errno));
@@ -184,9 +180,9 @@ void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num
     u8 ansbuf[UINT16_MAX] = {0};
 
     // Receive the answer if possible
-    u64 answer = get_answer(sock_fd, packet, lens.packet_size, in_addr, ansbuf);
+    u64 answer = get_answer(sock_fd, (packet_t)packet, lens.packet_size, in_addr, (answer_t)ansbuf);
     LOG_DEBUG("Received an answer of %lu bytes", answer);
-    close(sock_fd);
+    sock_close(sock_fd);
 
     if (answer == UINT64_MAX) { return; }
 
@@ -195,4 +191,5 @@ void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num
     decode_answers(decoded, ansbuf, &lens, results);
     *num_results = (u8)lens.decoded_answers;
 }
+
 // NOLINTEND(concurrency-mt-unsafe, bugprone-casting-through-void)
