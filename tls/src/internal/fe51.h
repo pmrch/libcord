@@ -10,7 +10,7 @@
 
 #define CARRY_LAST(result, index, current, out) do { \
     (result)[(index)] = u128_low(current) & MASK51; \
-    (out) = (u64)(u128_shr(current, LIMB_SIZE)); \
+    (out) = (u64)(u128_low(u128_shr(current, LIMB_SIZE))); \
 } while (0)
 
 #define REDUCE_FOLD(x, carry) do { \

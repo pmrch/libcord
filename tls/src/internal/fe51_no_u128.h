@@ -1,6 +1,7 @@
 #if !defined(FE51_NO_U128_H)
 #define FE51_NO_U128_H
 
+
 #if !defined(__SIZEOF_INT128__)
 #include "platform.h"
 #include "types.h"
@@ -8,9 +9,18 @@
 static inline u64 u128_high(u128 num) { return num.high_bits; }
 static inline u64 u128_low(u128 num) { return num.low_bits; }
 
-static inline u64 u128_shr(u128 num, u8 shift) {
+/*static inline u64 u128_shr(u128 num, u8 shift) {
     (void)shift;    
     return (num.low_bits >> LIMB_SIZE) | (num.high_bits << (BITS64 - LIMB_SIZE));
+}*/
+
+static inline u128 u128_shr(u128 num, u8 shift) {
+    (void)shift;
+    u128 result;
+    result.low_bits = (num.low_bits >> 51) | (num.high_bits << 13);
+    result.high_bits = num.high_bits >> 51;
+
+    return result;
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)

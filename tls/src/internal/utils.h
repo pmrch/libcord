@@ -11,6 +11,7 @@ u128 u128_add_u64(u128 num_a, u64 num_b);
 
 u128 u128_shr51(u128 num_a);
 
+
 #else
 static inline u128 mul_u64(u64 term1, u64 term2) { return (u128)term1 * (u128)term2; }
 static inline u128 u128_add(u128 term1, u128 term2) { return term1 + term2; }

@@ -5,11 +5,10 @@
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 u128 u128_add(u128 left, u128 right) {
-    pseudo_u128 result = {0};
+    u128 result = {0};
 
-    result.low_bits  = left.low_bits + right.low_bits;
-    result.high_bits = left.high_bits + right.high_bits + (result.low_bits < left.low_bits ? 1 : 0);
-
+    unsigned char carry = _addcarry_u64(0, left.low_bits, right.low_bits, &result.low_bits);
+    _addcarry_u64(carry, left.high_bits, right.high_bits, &result.high_bits);
     return result;
 }
 

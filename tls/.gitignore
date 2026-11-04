@@ -6,3 +6,12 @@ deps/**.c
 
 deps/**/*.o
 deps/**.o
+
+**.obj
+**.asm
+**/asm/**
+
+**/.vs
+**/.vscode
+
+**/build

@@ -2,6 +2,7 @@
 #include "abstraction.h"
 #include "constants.h"
 #include "log.h"
+#include "platform.h"
 #include "utils.h"
 
 #include <errno.h>
@@ -146,7 +147,7 @@ static u64 get_answer(sock_type_t sock, packet_t restrict packet, socklen_t pack
     int64_t sent = sendto(sock, packet, packet_size, 0, (saddr *)&in_addr, sizeof(in_addr));
 
     if (sent < 0) {
-        LOG_ERROR("Failed to send message due to error: %s!", strerror(errno));
+        LOG_ERROR("Failed to send message due to error: %s!", get_error_string(errno));
         return UINT64_MAX;
     }
 
@@ -154,10 +155,10 @@ static u64 get_answer(sock_type_t sock, packet_t restrict packet, socklen_t pack
     socklen_t addr_len = sizeof(in_addr);
 
     LOG_DEBUG("%s", "Receiving response from DNS nameserver...");
-    int64_t recvd = recvfrom(sock, answer, UINT16_MAX, 0, (saddr *)&in_addr, &addr_len);
+    int64_t recvd = SOCK_RECVFROM(sock, answer, UINT16_MAX, 0, (saddr *)&in_addr, &addr_len);
 
-    if (recvd < 0) {
-        LOG_ERROR("Failed to receive message due to error: %s!", strerror(errno));
+    if (SOCK_RECV_FAIL(recvd)) {
+        LOG_ERROR("Failed to receive message due to error: %d!", WSAGetLastError());
         return UINT64_MAX;
     }
 
@@ -213,19 +214,14 @@ void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num
     saddr_in    in_addr = {.sin_family = AF_INET, .sin_port = htons(DNS_PORT), .sin_addr.s_addr = htonl(DNS_SERVER)};
     sock_type_t sock_fd = socket(AF_INET, RSOCK_TYPE, IPPROTO_UDP);
 
-    if (sock_fd == -1) {
-        LOG_ERROR("Failed to open socket: %s", strerror(errno));
+    if (SOCK_CREATE_FAIL(sock_fd)) {
+        LOG_ERROR("Failed to open socket: %s | %li", get_error_string(errno), sock_fd);
         return;
     }
 
-    struct timeval timeout;
-    timeout.tv_sec  = 1 << 3;
-    timeout.tv_usec = 0;
-
-    int32_t send_timeout = setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-    int32_t recv_timeout = setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-
-    if (send_timeout < 0 || recv_timeout < 0) {
+    u8 success;
+    SOCKOPT_TIMEOUT_RECV(sock_fd, EIGHT, success);
+    if (!success) {
         sock_close(sock_fd);
         LOG_ERROR("%s", "setsockopt failed\n");
         return;

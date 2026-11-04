@@ -1,5 +1,6 @@
 #include "crypt.h"
 #include "curve25519_donna.h"
+#include "platform.h"
 #include "utils.h"
 
 #include <stdio.h>
@@ -108,6 +109,7 @@ static inline void test_predefined(void) {
 
 static inline void test_random(u64 num_iter) {
     printf("\n=== Starting Differential Fuzz Testing against curve25519-donna ===");
+    Timer timer = {0};
 
     u8 random_scalar[BITS32] = {0};
     u8 random_ucoord[BITS32] = {0};
@@ -117,6 +119,8 @@ static inline void test_random(u64 num_iter) {
 
     fe51 my_field_elem = {0};
     int  diff_failed   = 0;
+
+    start_timer(&timer);
     for (u64 i = 0; i < num_iter; i++) {
         generate_random_bytes(BITS32, random_scalar);
         generate_random_bytes(BITS32, random_ucoord);
@@ -128,7 +132,7 @@ static inline void test_random(u64 num_iter) {
         if (donna_ret != 0) { continue; }
 
         if (memcmp(my_output, donna_output, BITS32) != 0) {
-            printf("Fuzz test FAILED on iteration %lu!\n", i + 1);
+            printf("Fuzz test FAILED on iteration %llu!\n", i + 1);
 
             printf("Scalar:     ");
             print_hex(random_scalar);
@@ -149,11 +153,17 @@ static inline void test_random(u64 num_iter) {
         }
     }
 
+    end_timer(&timer);
+    double ns = get_timer_ns(&timer);
+
     if (diff_failed == 0) {
-        printf("\n%sAll %lu X25519 randomly generated test VECTORS PASSED successfully.%s\n", CLR_GREEN, num_iter, CLR_RESET);
+        printf("\n%sAll %llu X25519 randomly generated test VECTORS PASSED successfully.%s\n", CLR_GREEN, num_iter, CLR_RESET);
     } else {
-        printf("\n%s%d of %lu X25519 randomly generated test VECTORS FAILED.%s\n", CLR_RED, diff_failed, num_iter, CLR_RESET);
+        printf("\n%s%d of %llu X25519 randomly generated test VECTORS FAILED.%s\n", CLR_RED, diff_failed, num_iter, CLR_RESET);
     }
+
+    printf("\nTotal time: %f ns\n", ns);
+    printf("Average: %.2f us/op\n", ns / 10000.0 / 1000.0);
 }
 
 int main(void) {

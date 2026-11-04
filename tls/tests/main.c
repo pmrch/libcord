@@ -14,6 +14,8 @@
 // #define N 100
 
 int main(void) {
+    INIT_SOCK();
+
     u8 private_key[BITS32] = {0};
     u8 public_key[BITS32]  = {0};
     u8 basepoint[BITS32]   = {NINE};
@@ -33,5 +35,6 @@ int main(void) {
     printf("\n");
     // test_fe();
     //  free(addr);
+
     return 0;
 }
