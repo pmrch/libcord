@@ -158,7 +158,7 @@ static u64 get_answer(sock_type_t sock, packet_t restrict packet, socklen_t pack
     int64_t recvd = SOCK_RECVFROM(sock, answer, UINT16_MAX, 0, (saddr *)&in_addr, &addr_len);
 
     if (SOCK_RECV_FAIL(recvd)) {
-        LOG_ERROR("Failed to receive message due to error: %d!", WSAGetLastError());
+        LOG_ERROR("Failed to receive message due to error: %d!", GET_ERROR_CODE);
         return UINT64_MAX;
     }
 

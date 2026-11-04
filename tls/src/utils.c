@@ -28,10 +28,7 @@ void free_all(Freeable *objs, u64 num) {
 
 // out parameter must be able to hold 16 characters including null-terminator
 void get_formatted_ipv4(u32 word, u8 *restrict out) {
-    if (word == 0) {
-        LOG_ERROR("%s", "Couldn't create formatted ipv4 string, input work was 0");
-        return;
-    }
+    if (word == 0) { LOG_WARN("%s", "Input IPv4 word was 0, potentially a mistake, unless intentetional."); }
 
     u8 bytes[4];
     ipv4_word_to_bytes(word, bytes);

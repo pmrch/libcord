@@ -22,7 +22,7 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
 
     sock_type_t sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (SOCK_CREATE_FAIL(sock_fd)) {
-        LOG_ERROR("Failed to open socket to %s | %d", hostname, WSAGetLastError());
+        LOG_ERROR("Failed to open socket to %s | %d", hostname, GET_ERROR_CODE);
         return;
     }
 
@@ -30,7 +30,7 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
         char ipv[BITS16] = {0};
         get_formatted_ipv4(main_addr, (u8 *)ipv);
 
-        LOG_ERROR("Failed to connect to server: %s, %d, %li", ipv, WSAGetLastError(), sock_fd);
+        LOG_ERROR("Failed to connect to server: %s, %d, %li", ipv, GET_ERROR_CODE, sock_fd);
         return;
     }
 

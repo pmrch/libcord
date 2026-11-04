@@ -8,9 +8,12 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <errno.h>
 
 #define PACKED __attribute__((packed))
 #define PRINTF_LIKE(idx, p) __attribute__((format(printf, idx, p)))
+
+#define GET_ERROR_CODE (errno)
 
 typedef struct timespec tspec;
 

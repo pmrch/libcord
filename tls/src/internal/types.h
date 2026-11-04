@@ -51,9 +51,11 @@ typedef SOCKET sock_type_t;
 typedef int socklen_t;
 
 #else
+#include <sys/socket.h>
+
 #define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
 typedef int32_t sock_type_t;
-typedef __socklen_t socklen_t;
+// typedef __socklen_t socklen_t;
 
 #endif
 
