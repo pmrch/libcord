@@ -34,6 +34,6 @@ double get_timer_ns(Timer *timer) {
     return result * ONE_BILLION;
 }
 
+#else
+__attribute__((unused)) static void dont_flag(void);
 #endif
-
-__attribute__((unused)) static void dont_flag(void) {}

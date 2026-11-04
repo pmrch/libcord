@@ -4,9 +4,6 @@
 #include "constants.h"
 #include "types.h"
 
-#ifndef _WIN32
-
-#endif
 
 #if !defined(__SIZEOF_INT128__)
 u128 u128_add(u128 left, u128 right);
@@ -64,5 +61,20 @@ static inline void hex_to_bytes(const char *restrict hex, u8 *restrict bytes) {
         bytes[i] = (u8)((high << 4) | low);
     }
 }
+
+// NOLINTBEGIN (readability-magic-numbers)
+// AI-generated utility for turning little endian into big endian
+static inline u64 swap_u64(u64 val) {
+    return (((val & 0x00000000000000FFULL) << 56) |
+     ((val & 0x000000000000FF00ULL) << 40) |
+     ((val & 0x0000000000FF0000ULL) << 24) |
+     ((val & 0x00000000FF000000ULL) << 8)  |
+     ((val & 0x000000FF00000000ULL) >> 8)  |
+     ((val & 0x0000FF0000000000ULL) >> 24) |
+     ((val & 0x00FF000000000000ULL) >> 40) |
+     ((val & 0xFF00000000000000ULL) >> 56)
+    );
+}
+// NOLINTEND (readability-magic-numbers)
 
 #endif

@@ -2,7 +2,6 @@
 #include "log.h"
 
 #define ONE_HUNDRED 100ULL
-#define TEN 10ULL
 
 // 4 bytes sctrictly as output
 static inline void ipv4_word_to_bytes(u32 word, u8 *restrict bytes) {

@@ -1,7 +1,6 @@
 #ifndef FE51_H
 #define FE51_H
 
-#include "log.h"
 #include "types.h"
 
 #define CARRY_NEXT(result, index, current, next) do { \
@@ -48,10 +47,10 @@ static inline void pack_values(const u64 *restrict vals, u64 *restrict field_ele
     u64 steps_right[] = {LIMB_SIZE, (LIMB_SIZE - LIMB_STEP), (LIMB_SIZE - (2 * LIMB_STEP))};
     u64 steps_left[]  = {LIMB_STEP, (LIMB_STEP * 2), (LIMB_STEP * 3)};
 
-    LOG_DEBUG("In pack_values vals: {%lu, %lu, %lu, %lu}", vals[0], vals[1], vals[2], vals[3]);
+    // LOG_DEBUG("In pack_values vals: {%lu, %lu, %lu, %lu}", vals[0], vals[1], vals[2], vals[3]);
     field_elem[0] = vals[0] & MASK51;
     for (u8 i = 1; i < 4; i++) { field_elem[i] = ((vals[i - 1] >> steps_right[i - 1]) | (vals[i] << steps_left[i - 1])) & MASK51; }
-    field_elem[4] = ((vals[3] >> (LIMB_SIZE - (LIMB_STEP * 3)))) & MASK51;
+    field_elem[4] = (vals[3] >> (LIMB_SIZE - (LIMB_STEP * 3))) & MASK51;
 }
 
 static inline void fe_add(const u64 *restrict a, u64 *restrict result, const u64 *restrict b) {

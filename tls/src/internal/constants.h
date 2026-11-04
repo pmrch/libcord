@@ -56,4 +56,51 @@
 #define RA 7
 #define Z 4
 
+// TLS related entries
+#define TLS1_0 0x0301
+#define TLS1_2 0x0303
+#define TLS1_3 0x0304
+
+#define MASK_BYTE 0xFF
+
+#define TYPE_HANDSHAKE 0x16
+#define HANDSHAKE_MSG_TYPE 0x01
+#define FAKE_SESSION_LEN 0x20
+
+#define TLS_CHACHA20_POLY1305_SHA256 0x1303
+#define TLS_EXT_EC_POINT_FORMATS 0x000b
+#define TLS_EXT_SUPPORTED_GROUPS 0x000a
+#define TLS_EXT_SESSION_TICKET 0x0023
+#define TLS_EXT_ENCRYPT_THEN_MAC 0x0016
+#define TLS_EXT_EXTENDED_MASTER_SECRET 0x0017
+#define TLS_EXT_SIGNATURE_ALGORITHMS 0x000d
+#define TLS_EXT_SUPPORTED_VERSIONS 0x002b
+#define TLS_EXT_PSK_KEY_EXCHANGE_MODES 0x002d
+#define TLS_EXT_KEY_SHARE 0x0033
+
+#define TLS_EXT_CURVE_X25519 0x001d
+
+#define TLS_EXT_SIG_ECDSA_SHA256 0x0403
+#define TLS_EXT_SIG_RSA_PSS_SHA384 0x0805
+#define TLS_EXT_SIG_RSA_PSS_SHA256 0x0804
+#define TLS_EXT_SIG_ED25519 0x0807
+
+#define TLS_KEY_SHARE_EXT_LEN 0x0026
+#define TLS_KEY_SHARE_DATA_LEN 0x0024
+#define TLS_KEY_SHARE_KEX_X25519 0x001d
+#define TLS_KEY_SHARE_PUBKEY_LEN 0x0020
+
+// Numbers
+#define FOUR 0x04
+#define FIVE 0x05
+#define SIX 0x06
+#define SEVEN 0x07
+#define EIGHT 0x08
+#define NINE 0x09
+#define TEN 0x0a
+
+#ifndef _MSC_VER
+__attribute__((unused)) static void not_empty(void);
+#endif
+
 #endif

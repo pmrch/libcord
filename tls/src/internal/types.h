@@ -27,10 +27,34 @@ typedef struct {
     u64 t0, t1, t2, t3, t4;
 } LimbRepr;
 
-#if !defined(__SIZEOF_INT128__)
+#pragma pack(push, 1)
+typedef struct {
+    u8 type;
+    u16 proto;
+    u16 size;
+} TlsHeader;
+#pragma pack(pop)
+
+#ifndef __SIZEOF_INT128__
 typedef pseudo_u128 u128;
 #else
 typedef __uint128_t u128;
+#endif
+
+#ifdef _MSC_VER
+#pragma comment(lib, "ws2_32.lib")
+#include <WinSock2.h>
+
+typedef SOCKET sock_type_t;
+
+#define RSOCK_TYPE SOCK_DGRAM
+typedef int socklen_t;
+
+#else
+#define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
+typedef int32_t sock_type_t;
+typedef __socklen_t socklen_t;
+
 #endif
 
 #endif

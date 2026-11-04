@@ -52,31 +52,6 @@ typedef struct sockaddr     saddr;
 
 void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num_results);
 
-#ifdef _MSC_VER
-#pragma comment(lib, "ws2_32.lib")
-#include <WinSock2.h>
-
-typedef SOCKET sock_type_t;
-
-#define sock_close(fd) do {\
-    closesocket(sock_fd); \
-    WSACleanup(); \
-} while (0)
-
-#define RSOCK_TYPE SOCK_DGRAM
-typedef int socklen_t;
-
-#else
-#define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
-typedef int32_t sock_type_t;
-typedef __socklen_t socklen_t;
-
-#define sock_close(fd) do {\
-    close(sock_fd); \
-} while (0)
-
-#endif
-
 typedef struct {
     socklen_t packet_size;
     u32 decoded_answers;

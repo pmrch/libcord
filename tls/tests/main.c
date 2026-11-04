@@ -1,62 +1,37 @@
+#include "constants.h"
 #include "crypt.h"
+#include "http.h"
 #include "log.h"
+#include "tls.h"
 #include "utils.h"
 
 #include <string.h>
 
-#define BYTES 32
-// #define ADDR "discord.com"
-#define N 100
-
-static void test_fe(void) {
-    const char *hex_scalar   = "4b66e9d4d1b4673c5ad22691957d6af5c11b6421e0ea01d42ca4169e7918ba0d";
-    const char *hex_ucoord   = "e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a493";
-    const char *hex_expected = "95cbde9476e8907d7aade45cb4b873f88b595a68799fa152e6f8f7647aac7957";
-
-    u8 bytes_scalar[BYTES];
-    u8 bytes_ucoord[BYTES];
-    u8 expected[BYTES];
-
-    u8   output[BYTES] = {0};
-    fe51 field_output  = {0};
-
-    hex_to_bytes(hex_scalar, bytes_scalar);
-    hex_to_bytes(hex_ucoord, bytes_ucoord);
-    hex_to_bytes(hex_expected, expected);
-
-    // NOLINTNEXTLINE
-    for (u64 i = 0; i < 10; i++) { curve25519(bytes_scalar, bytes_ucoord, field_output); }
-
-    Timer timer = {0};
-    start_timer(&timer); // NOLINTNEXTLINE
-    for (u64 i = 0; i < N; i++) {
-        curve25519(bytes_scalar, bytes_ucoord, field_output);
-        encode_u_coordinate(output, field_output);
-
-        if (memcmp(output, expected, BYTES) == 0) { continue; }
-
-        printf("X25519 test FAILED!\n");
-        printf("Expected: ");
-        for (u8 j = 0; j < BYTES; j++) { printf("%02x", expected[j]); }
-
-        printf("\nActual:   ");
-        for (u8 k = 0; k < BYTES; k++) { printf("%02x", output[k]); }
-
-        printf("\n");
-    }
-    end_timer(&timer);
-    printf("%.2f us/op\n", (get_timer_ns(&timer)) / (double)N / 1000.0);
-}
+// #define BYTES 32
+#define MAX_DOMAIN_LEN 254
+#define ADDR "discord.com"
+#define HELLO_SIZE 512
+// #define N 100
 
 int main(void) {
-    /*u8 first_ip[4] = {0};
+    u8 private_key[BITS32] = {0};
+    u8 public_key[BITS32]  = {0};
+    u8 basepoint[BITS32]   = {NINE};
 
-    uint32_t *addr = get_addr_ipv4(ADDR);
-    RET_ON_ERR(addr == NULL, -1, "Failed to get IP addresses for %s", ADDR);
-    ipv4_word_to_bytes(addr[0], first_ip);*/
+    fe51 output_field = {0};
 
-    test_fe();
+    generate_random_bytes(BITS32, private_key);
+    curve25519(private_key, basepoint, output_field);
 
-    // free(addr);
+    encode_u_coordinate(public_key, output_field);
+
+    u8  hello_buf[HELLO_SIZE] = {0};
+    u16 client_hello_len      = build_client_hello(hello_buf, ADDR, sizeof(ADDR) - 1, public_key);
+
+    connect_to_server(ADDR, hello_buf, client_hello_len, private_key);
+    // for (u16 i = 0; i < client_hello_len; i++) { printf("%02x ", hello_buf[i]); }
+    printf("\n");
+    // test_fe();
+    //  free(addr);
     return 0;
 }

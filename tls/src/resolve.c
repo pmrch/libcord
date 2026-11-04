@@ -9,13 +9,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-// NOLINTNEXTLINE readability-identifier-length
-static inline u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
-    u16 flags_total = (u16)((qr << QR) | (opcode << OPCODE) | (aa << AA) | (tc << TC) | (rd << RD) | (ra << RA) | (z << Z) | rcode);
-    return flags_total;
-}
+#define MAX_DOMAIN_LEN 254
 
+/*
 static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *restrict buf) {
+    if (!hostname || !final_len || !buf || *hostname) { // clang-format off
+        LOG_ERROR("encode_hostname got invalid arguments. Hostname: %p, final_len: %p, buf: %p", (const void*)hostname,
+(void*)final_len, (const void*)buf); return; // Error: invalid arguments
+    }
+    // clang-format on
+
     const char *cur_dot  = NULL;
     const char *last_dot = NULL;
 
@@ -45,17 +48,65 @@ static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *res
     // null-termination for end
     buf[*final_len - 1] = 0x00;
 }
+*/
+
+// NOLINTNEXTLINE readability-identifier-length
+static inline u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
+    u16 flags_total = (u16)((qr << QR) | (opcode << OPCODE) | (aa << AA) | (tc << TC) | (rd << RD) | (ra << RA) | (z << Z) | rcode);
+    return flags_total;
+}
+
+static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *restrict buf) {
+    if (!hostname || !final_len || !buf || *hostname == '\0') {
+        LOG_ERROR("Invalid arguments. Hostname: %p, len: %p, buf: %p", (const void *)hostname, (void *)final_len, (const void *)buf);
+        return; // Error: invalid arguments
+    }
+
+    *final_len = (u32)(strlen(hostname) + 2); // One byte before and one after the actual string
+    if (*final_len == UINT32_MAX || *final_len > MAX_DOMAIN_LEN) {
+        LOG_ERROR("Too long domain name provided: %s", hostname);
+        return;
+    }
+
+    LOG_VERBOSE("Got hostname %s to encode, with length of %u.", hostname, *final_len - 2);
+    memcpy(buf + 1, hostname, *final_len - 2); // buf + 1 to skip the very first byte
+
+    u8 *last_dot  = NULL;
+    u8 *buf_ptr   = buf + 1;
+    u8  num_chars = 0;
+
+    buf[*final_len - 1] = '.';
+    while (*buf_ptr != '\0') {
+        if (*buf_ptr != '.') {
+            buf_ptr++;
+            num_chars++;
+            continue;
+        }
+
+        if (last_dot != NULL) {
+            *last_dot = num_chars;
+        } else {
+            buf[0]   = num_chars;
+            last_dot = buf_ptr;
+        }
+
+        num_chars = 0;
+        buf_ptr++;
+    }
+
+    buf[*final_len - 1] = 0x00;
+}
 
 static inline void print_encoded(const u8 *encoded, u64 len) {
     // clang-format off
-    char buf[BITS32] = {0};
+    char buf[(BITS32 << 1) - (BITS32 >> 1)] = {0};
 
     const u8 *ptr = encoded;
     u64 off  = 0;
     // clang-format on
 
     for (size_t i = 0; i < len; i++) {
-        int32_t res = snprintf(buf + off, len, "%02X ", ptr[i]);
+        int32_t res = snprintf(buf + off, sizeof(buf), "%02X ", ptr[i]);
         if (res >= 0) { off += (u64)res; }
     }
 
@@ -81,7 +132,7 @@ static inline void create_packet(u8 *restrict encoded, Lengths *lens, u8 *restri
     // Write the header to the packet
     memcpy(packet, &head, sizeof(Header));
     Question quest = {htons(1), htons(1)};
-    LOG_VERBOSE("Question: type=%#x, class=%#x", ntohs(quest.qtype), ntohs(quest.qclass));
+    LOG_VERBOSE("Question: type=%02x, class=%02x", ntohs(quest.qtype), ntohs(quest.qclass));
 
     memcpy(packet + sizeof(Header), encoded, lens->encode_len);
     memcpy(packet + sizeof(Header) + lens->encode_len, &quest, sizeof(Question));
@@ -125,7 +176,7 @@ static inline void decode_answers(Answer *restrict answers, u8 *restrict answers
     memcpy(&head, answers_buf, sizeof(Header));
 
     // clang-format off
-    LOG_VERBOSE("Answer header: id=%#x | flags=%#x | qdcount=%#x | ancount=%#x | arcount=%#x | nscount=%#x",
+    LOG_VERBOSE("Answer header: id=0x%04x | flags=0x%04x | qdcount=0x%02x | ancount=0x%02x | arcount=0x%02x | nscount=0x%02x",
         ntohs(head.id), ntohs(head.flags), ntohs(head.qdcount), ntohs(head.ancount), ntohs(head.arcount), ntohs(head.nscount)
     ); // clang-format on
 
@@ -158,11 +209,25 @@ void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num
         return;
     }
 
+    LOG_DEBUG("hostname: %s | results: %p | num_results: %p", hostname, (void *)results, (void *)num_results);
     saddr_in    in_addr = {.sin_family = AF_INET, .sin_port = htons(DNS_PORT), .sin_addr.s_addr = htonl(DNS_SERVER)};
     sock_type_t sock_fd = socket(AF_INET, RSOCK_TYPE, IPPROTO_UDP);
 
     if (sock_fd == -1) {
         LOG_ERROR("Failed to open socket: %s", strerror(errno));
+        return;
+    }
+
+    struct timeval timeout;
+    timeout.tv_sec  = 1 << 3;
+    timeout.tv_usec = 0;
+
+    int32_t send_timeout = setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    int32_t recv_timeout = setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+    if (send_timeout < 0 || recv_timeout < 0) {
+        sock_close(sock_fd);
+        LOG_ERROR("%s", "setsockopt failed\n");
         return;
     }
 

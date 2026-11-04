@@ -1,11 +1,8 @@
 #include "crypt.h"
 #include "fe51.h"
-#include "log.h"
 #include "utils.h"
-#include "platform.h"
 
 #include <string.h>
-
 
 static inline void carry_propagate(u64 *restrict field_elem) {
     u64 carry = field_elem[0] >> LIMB_SIZE;
@@ -90,7 +87,7 @@ void encode_u_coordinate(u8 *restrict bytes, u64 *restrict field_elem) {
     for (u8 i = 0; i < 4; i++) { u64_to_bytes(buf[i], bytes + (u64)(i * ONE_BYTE)); }
 }
 
-void decode_u_coordinate(fe51 field_elem, const u8 bytes[BITS32]) {
+void decode_u_coordinate(u64 *restrict field_elem, const u8 *restrict bytes) {
     u8 byte_slice[ONE_BYTE] = {0}; // clang-format off
     u64 buf[4] = {0}; // clang-format on
 
@@ -99,7 +96,7 @@ void decode_u_coordinate(fe51 field_elem, const u8 bytes[BITS32]) {
         buf[i] = u64_from_bytes_le(byte_slice);
     }
 
-    LOG_DEBUG("After loop vals: {%lu, %lu, %lu, %lu}", buf[0], buf[1], buf[2], buf[3]);
+    // LOG_DEBUG("After loop vals: {%lu, %lu, %lu, %lu}", buf[0], buf[1], buf[2], buf[3]);
     pack_values(buf, field_elem);
 }
 
@@ -111,7 +108,7 @@ static u8 get_scalar_bit(const fe51 kurva, int32_t index) {
 }
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void curve25519(u8 *scalar_bytes, u8 *u_coord, u64 *restrict result) {
+void curve25519(u8 *restrict scalar_bytes, const u8 *restrict u_coord, u64 *restrict result) {
     clamp_scalar(scalar_bytes);
 
     fe51 k_int = {0};
