@@ -4,7 +4,7 @@
 #define PACKED __declspec(pack)
 #define PRINTF_LIKE(idx, p)
 
-#define GET_ERROR_CODE() (WSAGetLastError())
+#define GET_ERROR_CODE (WSAGetLastError())
 
 #define WIN32_LEAN_AND_MEAN
 #include "types.h"
