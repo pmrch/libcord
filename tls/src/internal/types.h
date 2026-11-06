@@ -9,6 +9,11 @@ typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t  u8;
 
+typedef int64_t i64;
+typedef int32_t i32;
+typedef int16_t i16;
+typedef int8_t  i8;
+
 typedef void (*Destructor)(void *);
 typedef u64 fe51[LIMBS];
 
@@ -29,7 +34,7 @@ typedef struct {
 
 #pragma pack(push, 1)
 typedef struct {
-    u8 type;
+    u8  type;
     u16 proto;
     u16 size;
 } TlsHeader;
@@ -46,14 +51,16 @@ typedef __uint128_t u128;
 #include <WinSock2.h>
 
 typedef SOCKET sock_type_t;
+typedef int    socklen_t;
 
 #define RSOCK_TYPE SOCK_DGRAM
-typedef int socklen_t;
+#define RSOCK_STREAM_TYPE SOCK_STREAM
 
 #else
 #include <sys/socket.h>
 
 #define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
+#define RSOCK_STREAM_TYPE (SOCK_STREAM | SOCK_CLOEXEC)
 typedef int32_t sock_type_t;
 // typedef __socklen_t socklen_t;
 
