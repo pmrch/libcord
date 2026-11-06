@@ -18,7 +18,7 @@ typedef struct {
 typedef struct {
     u16 name;
     u16 type;
-    u16 class;
+    u16 cls;
     u32 ttl;
     u16 rdlength;
     u32 rdata;
@@ -54,9 +54,9 @@ void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num
 
 typedef struct {
     socklen_t packet_size;
-    u32 decoded_answers;
-    u32 question_len;
-    u32 encode_len;
+    u32       decoded_answers;
+    u32       question_len;
+    u32       encode_len;
 } Lengths;
 
 #endif

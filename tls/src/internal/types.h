@@ -40,6 +40,8 @@ typedef struct {
 } TlsHeader;
 #pragma pack(pop)
 
+// NOLINTBEGIN (-Wunused-macros)
+
 #ifndef __SIZEOF_INT128__
 typedef pseudo_u128 u128;
 #else
@@ -64,6 +66,7 @@ typedef int    socklen_t;
 typedef int32_t sock_type_t;
 // typedef __socklen_t socklen_t;
 
+// NOLINTEND (-Wunused-macros)
 #endif
 
 #endif
