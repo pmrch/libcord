@@ -100,9 +100,9 @@ void decode_u_coordinate(u64 *restrict field_elem, const u8 *restrict bytes) {
     pack_values(buf, field_elem);
 }
 
-static u8 get_scalar_bit(const fe51 kurva, int32_t index) {
-    int32_t limb = index / (int32_t)LIMB_SIZE;
-    int32_t bit  = index % (int32_t)LIMB_SIZE;
+static u8 get_scalar_bit(const fe51 kurva, i32 index) {
+    i32 limb = index / (i32)LIMB_SIZE;
+    i32 bit  = index % (i32)LIMB_SIZE;
 
     return (kurva[limb] >> bit) & 1;
 }
@@ -140,7 +140,7 @@ void curve25519(u8 *restrict scalar_bytes, const u8 *restrict u_coord, u64 *rest
     fe51 add_helper = {0};
 
     memcpy(x_3, x_1, sizeof(x_3)); // NOLINTNEXTLINE(readability-magic-numbers, altera-unroll-loops)
-    for (int32_t i = 254; i >= 0; i--) {
+    for (i32 i = 254; i >= 0; i--) {
         k_t = get_scalar_bit(k_int, i);
         swap ^= k_t;
 

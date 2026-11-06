@@ -26,9 +26,12 @@ double get_timer_ns(Timer *timer);
 #define SOCK_RECVFROM(s, buf, len, flags, from, fromlen) \
     recvfrom((s), (char*)(buf), (int)(len), (flags), (from), (int*)(fromlen))
 
+#define SOCK_RECV(sock_fd, buf, len, flags) \
+    recv((sock_fd), (char *)(buf), (i32)(len), (flags))
+
 #define SOCKOPT_TIMEOUT_RECV(sock_fd, secs, failed) do {\
     DWORD timeout_ms = (secs) * 1000; \
-    int64_t res = (int64_t)(setsockopt((sock_fd), SOL_SOCKET, SO_RCVTIMEO, (const char *)&(timeout_ms), sizeof(timeout_ms))); \
+    i64 res = (i64)(setsockopt((sock_fd), SOL_SOCKET, SO_RCVTIMEO, (const char *)&(timeout_ms), sizeof(timeout_ms))); \
     (failed) = (u8)(res != SOCKET_ERROR); \
 } while (0)
 
@@ -48,6 +51,9 @@ double get_timer_ns(Timer *timer);
 #define SOCK_RECVFROM(s, buf, len, flags, from, fromlen) \
     recvfrom((s), (buf), (len), (flags), (from), (fromlen))
 
+#define SOCK_RECV(sock_fd, buf, len, flags) \
+    recv((sock_fd), (u8 *)(buf), (u16)(len), (flags))
+
 #define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
 #define sock_close(fd) do {\
     close(sock_fd); \
@@ -56,11 +62,11 @@ double get_timer_ns(Timer *timer);
 #define SOCKOPT_TIMEOUT_RECV(sock_fd, secs, failed) do {\
     struct timeval tv = {0}; \
     tv.tv_sec = (secs); \
-    int64_t res = (int64_t)setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)); \
+    i64 res = (i64)setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)); \
     (failed) = (u8)(res >= 0); \
 } while (0)
 
-#define  SOCK_CREATE_FAIL(sock_fd) ((sock_fd) == -1)
+#define SOCK_CREATE_FAIL(sock_fd) ((sock_fd) == -1)
 #define SOCK_RECV_FAIL(recv_status) ((recv_status) < 0)
 #define SOCK_CONN_FAIL(retcode) ((retcode) < 0)
 

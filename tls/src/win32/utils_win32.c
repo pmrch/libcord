@@ -4,11 +4,11 @@
 #include "platform.h"
 #include "utils.h"
 
-#include <Windows.h>
 #include <bcrypt.h>
+#include <windows.h>
 #pragma comment(lib, "bcrypt.lib")
 
-int8_t generate_random_bytes(u64 num_bytes, u8 *restrict buffer) {
+i8 generate_random_bytes(u64 num_bytes, u8 *restrict buffer) {
     NTSTATUS status = BCryptGenRandom(NULL, buffer, (ULONG)num_bytes, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
 
     if (status != 0) {

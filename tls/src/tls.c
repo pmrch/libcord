@@ -4,12 +4,7 @@
 #include "types.h"
 #include "utils.h"
 
-#include <errno.h>
-
 #define HEADER_LEN 5
-#define LOCAL_APPEND_TO_BUF16(num) do {\
-    u16_append((num), buffer, &offset); \
-} while (0)
 
 static inline void u16_append(u16 num, u8 *restrict buffer, u16 *restrict offset) {
     u16 local_off       = *offset;
@@ -17,6 +12,14 @@ static inline void u16_append(u16 num, u8 *restrict buffer, u16 *restrict offset
     buffer[local_off++] = num & MASK_BYTE;
 
     *offset = local_off;
+}
+
+static inline void print_header(const u8 *restrict buf) {
+    if (buf == NULL) { return; }
+
+    printf("Got the following header record from server: ");
+    for (u8 i = 0; i < FIVE; i++) { printf("%02x ", buf[i]); }
+    printf("\nFrom this, the record size is 0x%02x (%u) bytes\n", buf[4], buf[4]);
 }
 
 u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len, const u8 *restrict pubkey) {
@@ -31,8 +34,7 @@ u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len,
     offset += 3;
 
     // Client Version (TLS 1.2 for compatibility)
-    buffer[offset++] = 0x03;
-    buffer[offset++] = 0x03;
+    u16_append(TLS1_2, buffer, &offset);
 
     // Client random 32 bytes
     generate_random_bytes(BITS32, buffer + offset);
@@ -46,51 +48,38 @@ u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len,
 
     /// Cipher suites
     // 2 bytes of cipher data
-    buffer[offset++] = 0x00;
-    buffer[offset++] = 0x02;
+    u16_append(0x0002, buffer, &offset);
+    u16_append((TLS_CHACHA20_POLY1305_SHA256), buffer, &offset);
 
-    // TLS_CHACHA20_POLY1305_SHA256
-    LOCAL_APPEND_TO_BUF16(TLS_CHACHA20_POLY1305_SHA256);
-
-    // Compression methods
-    buffer[offset++] = 0x01; // 1 bytes of compression methods
-    buffer[offset++] = 0x00; // which is assigned with null
+    // Compression methods: 1 bytes of compression methods which is assigned with 00 (null)
+    u16_append(TLS_COMPRESSION_METHODS_NULL, buffer, &offset);
 
     // Extension Length
     u16 ext_len_offset = offset;
     offset += 2;
 
     /// Extensions
-    // Extension - Server Name
-    LOCAL_APPEND_TO_BUF16(0x0000);         // Value for server_name extension
-    LOCAL_APPEND_TO_BUF16(ext_len_sname);  // 2 bytes of extension length
-    LOCAL_APPEND_TO_BUF16(list_len_sname); // 2 bytes of list length
+    u16_append((u16)0x0000, buffer, &offset);    // Value for server_name extension
+    u16_append(ext_len_sname, buffer, &offset);  // 2 bytes of extension length
+    u16_append(list_len_sname, buffer, &offset); // 2 bytes of list length
 
     buffer[offset++] = 0x00; // DNS list type
-    LOCAL_APPEND_TO_BUF16(hname_len);
+    u16_append(hname_len, buffer, &offset);
 
     memcpy(buffer + offset, hostname, hname_len); // Copy the hostname
     offset += hname_len;
 
     // Extension - EC Point Formats
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_EC_POINT_FORMATS);
-
-    buffer[offset++] = 0x00; // 2 bytes of format types follow
-    buffer[offset++] = 0x02;
-
-    buffer[offset++] = 0x01; // 1 byte of format types follow
-    buffer[offset++] = 0x00; // assigned value for format "uncompressed"
+    u16_append(TLS_EXT_EC_POINT_FORMATS, buffer, &offset);
+    u16_append(0x0002, buffer, &offset);                       // 2 bytes of format types follow
+    u16_append(TLS_COMPRESSION_METHODS_NULL, buffer, &offset); // 1 byte of format types follow, 00 ("uncompressed")
 
     // Extension - Supported Groups
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_SUPPORTED_GROUPS);
+    u16_append(TLS_EXT_SUPPORTED_GROUPS, buffer, &offset);
+    u16_append(0x0004, buffer, &offset); // (4) bytes of "supported group" extension data follows
+    u16_append(0x0002, buffer, &offset); // 0x0002 (2) bytes of list elements
 
-    buffer[offset++] = 0x00; // 0x0004 (4) bytes of "supported group" extension data follows
-    buffer[offset++] = 0x04;
-
-    buffer[offset++] = 0x00; // 0x0002 (2) bytes of list elements
-    buffer[offset++] = 0x02;
-
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_CURVE_X25519);
+    u16_append(TLS_EXT_CURVE_X25519, buffer, &offset); // Selected curve type
 
     // Extension - Session Ticket
     /*buffer[offset++] = (TLS_EXT_SESSION_TICKET >> ONE_BYTE) & MASK_BYTE;
@@ -111,7 +100,7 @@ u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len,
     buffer[offset++] = 0x00;*/
 
     // Extension - Signature Algorithms
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_SIGNATURE_ALGORITHMS);
+    u16_append(TLS_EXT_SIGNATURE_ALGORITHMS, buffer, &offset);
 
     buffer[offset++] = 0x00; // 10 bytes follow
     buffer[offset++] = TEN;
@@ -119,21 +108,26 @@ u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len,
     buffer[offset++] = EIGHT;
 
     // 0x0804 RSA-PSS-SHA256, 0x0403 ECDSA-SHA256, 0x0807 Ed25519, and 0x0805 RSA-PSS-SHA384
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_SIG_ECDSA_SHA256); // The list begins
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_SIG_RSA_PSS_SHA256);
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_SIG_RSA_PSS_SHA384);
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_SIG_ED25519); // list end
+    u16_append(TLS_EXT_SIG_ECDSA_SHA256, buffer, &offset); // The list begins
+    u16_append(TLS_EXT_SIG_RSA_PSS_SHA256, buffer, &offset);
+    u16_append(TLS_EXT_SIG_RSA_PSS_SHA384, buffer, &offset);
+    u16_append(TLS_EXT_SIG_ED25519, buffer, &offset); // list end
 
     // Extension - Supported Versions
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_SUPPORTED_VERSIONS);
+    u16_append(TLS_EXT_SUPPORTED_VERSIONS, buffer, &offset);
 
+    /*
     buffer[offset++] = 0x00; // 3 bytes follow: 1 for length , 2 for each version
     buffer[offset++] = 0x03;
     buffer[offset++] = 0x02; // 2 bytes for versions
+    */
 
-    /*buffer[offset++] = (TLS1_2 >> ONE_BYTE) & MASK_BYTE;
-    buffer[offset++] = TLS1_2 & MASK_BYTE;*/
-    LOCAL_APPEND_TO_BUF16(TLS1_3);
+    buffer[offset++] = 0x00; // 5 bytes follow: 1 for length , 4 for each version
+    buffer[offset++] = FIVE;
+    buffer[offset++] = FOUR;
+
+    u16_append(TLS1_2, buffer, &offset);
+    u16_append(TLS1_3, buffer, &offset);
 
     // Extension - PSK Key Exchange Modes
     /*buffer[offset++] = (TLS_EXT_PSK_KEY_EXCHANGE_MODES >> ONE_BYTE) & MASK_BYTE;
@@ -145,11 +139,11 @@ u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len,
     buffer[offset++] = 0x01; // assigned value for "PSK with (EC)DHE key establishment"*/
 
     // Extension - Key Share
-    LOCAL_APPEND_TO_BUF16(TLS_EXT_KEY_SHARE);
-    LOCAL_APPEND_TO_BUF16(TLS_KEY_SHARE_EXT_LEN);
-    LOCAL_APPEND_TO_BUF16(TLS_KEY_SHARE_DATA_LEN);
-    LOCAL_APPEND_TO_BUF16(TLS_KEY_SHARE_KEX_X25519);
-    LOCAL_APPEND_TO_BUF16(TLS_KEY_SHARE_PUBKEY_LEN);
+    u16_append(TLS_EXT_KEY_SHARE, buffer, &offset);
+    u16_append(TLS_KEY_SHARE_EXT_LEN, buffer, &offset);
+    u16_append(TLS_KEY_SHARE_DATA_LEN, buffer, &offset);
+    u16_append(TLS_KEY_SHARE_KEX_X25519, buffer, &offset);
+    u16_append(TLS_KEY_SHARE_PUBKEY_LEN, buffer, &offset);
 
     memcpy(buffer + offset, pubkey, BITS32);
     offset += BITS32;
@@ -158,23 +152,60 @@ u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len,
     LOG_DEBUG("ext_len_offset: %u | hs_len_offset: %u | offset: %u", ext_len_offset, hs_len_offset, offset);
 
     // Backfill extension length
-    u16 ext_len                = (u16)(offset - ext_len_offset - 2);
-    buffer[ext_len_offset]     = (ext_len >> ONE_BYTE) & MASK_BYTE;
-    buffer[ext_len_offset + 1] = ext_len & MASK_BYTE;
+    u16 ext_len = (u16)(offset - ext_len_offset - 2);
+    u16_append(ext_len, buffer, &ext_len_offset);
 
     // Backfill Handshake Length
     u16 hs_len = offset - 4;
 
-    buffer[hs_len_offset]     = (hs_len >> (ONE_BYTE * 2)) & MASK_BYTE;
-    buffer[hs_len_offset + 1] = (hs_len >> ONE_BYTE) & MASK_BYTE;
-    buffer[hs_len_offset + 2] = hs_len & MASK_BYTE;
+    buffer[hs_len_offset++] = (hs_len >> (ONE_BYTE * 2)) & MASK_BYTE;
+    u16_append(hs_len, buffer, &hs_len_offset);
 
     return offset;
 }
 
-// int64_t tls_record_recv(sock_type_t sock_fd, u8 *restrict type_out, const u8 *restrict buf, u16 bufsize) { return 0; }
+i64 tls_record_recv(sock_type_t sock_fd, u8 *restrict buf, u16 bufsize) {
+    u16 offset_total = 0;
+    if (buf == NULL) {
+        LOG_ERROR("%s", "Passed TLS record output buffer was NULL");
+        return -1;
+    }
 
-int64_t tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u16 len) {
+    i64 recvd = -1;
+    u16 size  = 0;
+
+    do {
+        recvd = SOCK_RECV(sock_fd, buf, FIVE, 0); // Receive just the header 5 bytes
+        if (SOCK_RECV_FAIL(recvd)) {
+            LOG_ERROR("Failed to receive %u bytes from socket, status: %li", FIVE, recvd);
+            return -1;
+        }
+
+        size = (u8)(buf[3] << ONE_BYTE) | buf[4];
+        offset_total += (u16)(recvd);
+
+        if ((size + FIVE) > bufsize) {
+            LOG_ERROR("Buffer of size %u would overflow from %u bytes!", bufsize, size + FIVE);
+            return -1;
+        }
+
+        recvd = SOCK_RECV(sock_fd, buf + offset_total, size, 0);
+        if (SOCK_RECV_FAIL(recvd)) {
+            LOG_ERROR("Failed to receive %u bytes from socket, status: %li", size, recvd);
+            return -1;
+        }
+
+        LOG_VERBOSE("Received %li", recvd);
+        if (recvd > 0) { offset_total += (u16)(recvd); }
+    } while (offset_total != (size + FIVE));
+
+    LOG_DEBUG("Got offset: %u", offset_total);
+
+    print_header(buf);
+    return offset_total;
+}
+
+i64 tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u16 len) {
     TlsHeader header;
     header.type  = TYPE;
     header.proto = htons(TLS1_2);
@@ -187,7 +218,7 @@ int64_t tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u
     LOG_VERBOSE("TLS ClientHello header: type=0x%02x, proto=0x%04x, len=0x%04x", header.type, ntohs(header.proto), ntohs(header.size));
 
     while (sent < HEADER_LEN) {
-        int64_t sss = send(sock_fd, header_ptr + sent, HEADER_LEN - sent, 0);
+        i64 sss = send(sock_fd, header_ptr + sent, HEADER_LEN - sent, 0);
         if (sss < 0 && errno == EINTR) { continue; }
         if (sss < 0) { return -1; }
         sent += (socklen_t)sss;
@@ -198,11 +229,11 @@ int64_t tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u
 
     sent = 0;
     while (sent < len) {
-        int64_t sss = send(sock_fd, ptr + sent, len - sent, 0);
+        i64 sss = send(sock_fd, ptr + sent, len - sent, 0);
         if (sss < 0 && errno == EINTR) { continue; }
         if (sss < 0) { return -1; }
         sent += (socklen_t)sss;
     }
 
-    return (int64_t)sent;
+    return (i64)sent;
 }
