@@ -8,19 +8,19 @@
 #include <unistd.h>
 
 // NOLINTBEGIN(concurrency-mt-unsafe)
-int8_t generate_random_bytes(u64 num_bytes, u8 *restrict buffer) {
+i8 generate_random_bytes(u64 num_bytes, u8 *restrict buffer) {
     if (buffer == NULL) {
         LOG_ERROR("%s", "Cannot generate random into a NULL buffer!");
         return -1;
     }
 
-    int32_t f_desc = open("/dev/urandom", O_CLOEXEC | O_RDONLY);
+    i32 f_desc = open("/dev/urandom", O_CLOEXEC | O_RDONLY);
     if (f_desc < 0) {
         LOG_ERROR("Failed to open urandom: %s", strerror(errno));
         return -1;
     }
 
-    int64_t read_bytes = read(f_desc, buffer, num_bytes); // clang-format on
+    i64 read_bytes = read(f_desc, buffer, num_bytes); // clang-format on
     close(f_desc);
 
     if (read_bytes < 0) {

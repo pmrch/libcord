@@ -172,9 +172,9 @@ u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len,
     return offset;
 }
 
-// int64_t tls_record_recv(sock_type_t sock_fd, u8 *restrict type_out, const u8 *restrict buf, u16 bufsize) { return 0; }
+// i64 tls_record_recv(sock_type_t sock_fd, u8 *restrict type_out, const u8 *restrict buf, u16 bufsize) { return 0; }
 
-int64_t tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u16 len) {
+i64 tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u16 len) {
     TlsHeader header;
     header.type  = TYPE;
     header.proto = htons(TLS1_2);
@@ -187,7 +187,7 @@ int64_t tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u
     LOG_VERBOSE("TLS ClientHello header: type=0x%02x, proto=0x%04x, len=0x%04x", header.type, ntohs(header.proto), ntohs(header.size));
 
     while (sent < HEADER_LEN) {
-        int64_t sss = send(sock_fd, header_ptr + sent, HEADER_LEN - sent, 0);
+        i64 sss = send(sock_fd, header_ptr + sent, HEADER_LEN - sent, 0);
         if (sss < 0 && errno == EINTR) { continue; }
         if (sss < 0) { return -1; }
         sent += (socklen_t)sss;
@@ -198,11 +198,11 @@ int64_t tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u
 
     sent = 0;
     while (sent < len) {
-        int64_t sss = send(sock_fd, ptr + sent, len - sent, 0);
+        i64 sss = send(sock_fd, ptr + sent, len - sent, 0);
         if (sss < 0 && errno == EINTR) { continue; }
         if (sss < 0) { return -1; }
         sent += (socklen_t)sss;
     }
 
-    return (int64_t)sent;
+    return (i64)sent;
 }

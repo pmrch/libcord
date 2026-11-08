@@ -30,19 +30,20 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
         char ipv[BITS16] = {0};
         get_formatted_ipv4(main_addr, (u8 *)ipv);
 
-        LOG_ERROR("Failed to connect to server: %s, %d, %li", ipv, GET_ERROR_CODE, sock_fd);
+        LOG_ERROR("Failed to connect to server: %s, %d, %li", ipv, GET_ERROR_CODE, (long)sock_fd);
         return;
     }
 
     u8 received[1 << (TEN + 1) << 2] = {0};
     tls_record_send(sock_fd, TYPE_HANDSHAKE, client_hello, client_hello_len);
 
-    int64_t recvd      = 0;
-    u64     bytes_read = 0;
+    i64 recvd      = 1;
+    u64 bytes_read = 0;
 
-    while (bytes_read < 90) {
-        int64_t rec = recv(sock_fd, received + bytes_read, 128, 0);
-        if (rec > 0) { bytes_read += rec; }
+    while (bytes_read < sizeof(received) && recvd > 0) {
+        recvd = recv(sock_fd, received + bytes_read, sizeof(received), 0);
+        LOG_DEBUG("got %li bytes", recvd);
+        if (recvd > 0) { bytes_read += (u64)recvd; }
     }
 
     if (recvd < 0) {
@@ -51,6 +52,6 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
     }
 
     printf("\x1b[33mGot: ");
-    for (u8 i = 0; i < SEVEN; i++) { printf("%02x ", received[i]); }
-    printf("\x1b[0m\n");
+    for (u16 i = 0; i < bytes_read; i++) { printf("%02x ", received[i]); }
+    printf("\x1b[0m\n%lu read\n", bytes_read);
 }

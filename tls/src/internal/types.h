@@ -9,6 +9,11 @@ typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t  u8;
 
+typedef int64_t i64;
+typedef int32_t i32;
+typedef int16_t i16;
+typedef int8_t  i8;
+
 typedef void (*Destructor)(void *);
 typedef u64 fe51[LIMBS];
 
@@ -26,14 +31,6 @@ typedef struct {
 typedef struct {
     u64 t0, t1, t2, t3, t4;
 } LimbRepr;
-
-#pragma pack(push, 1)
-typedef struct {
-    u8 type;
-    u16 proto;
-    u16 size;
-} TlsHeader;
-#pragma pack(pop)
 
 #ifndef __SIZEOF_INT128__
 typedef pseudo_u128 u128;
@@ -54,7 +51,7 @@ typedef int socklen_t;
 #include <sys/socket.h>
 
 #define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
-typedef int32_t sock_type_t;
+typedef i32 sock_type_t;
 // typedef __socklen_t socklen_t;
 
 #endif

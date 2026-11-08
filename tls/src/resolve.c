@@ -23,7 +23,7 @@ static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *res
     const char *cur_dot  = NULL;
     const char *last_dot = NULL;
 
-    int64_t all_diff = 0;
+    i64 all_diff = 0;
 
     // +1 for the prefix of the hostname and +1 for the null-terminator
     *final_len = (u32)(strlen(hostname) + 2);
@@ -31,7 +31,7 @@ static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *res
 
     buf[*final_len - 1] = '.';
     while ((cur_dot = strchr(hostname + all_diff, '.')) != NULL) {
-        int64_t last_diff = (cur_dot - hostname); // Number of characters before the dot
+        i64 last_diff = (cur_dot - hostname); // Number of characters before the dot
 
         last_dot = cur_dot;
         all_diff += last_diff;
@@ -107,7 +107,7 @@ static inline void print_encoded(const u8 *encoded, u64 len) {
     // clang-format on
 
     for (size_t i = 0; i < len; i++) {
-        int32_t res = snprintf(buf + off, sizeof(buf), "%02X ", ptr[i]);
+        i32 res = snprintf(buf + off, sizeof(buf), "%02X ", ptr[i]);
         if (res >= 0) { off += (u64)res; }
     }
 
@@ -144,7 +144,7 @@ static inline void create_packet(u8 *restrict encoded, Lengths *lens, u8 *restri
 // NOLINTBEGIN(concurrency-mt-unsafe)
 static u64 get_answer(sock_type_t sock, packet_t restrict packet, socklen_t packet_size, saddr_in in_addr, answer_t restrict answer) {
     LOG_DEBUG("%s", "Sending DNS query message to nameserver...");
-    int64_t sent = sendto(sock, packet, packet_size, 0, (saddr *)&in_addr, sizeof(in_addr));
+    i64 sent = sendto(sock, packet, packet_size, 0, (saddr *)&in_addr, sizeof(in_addr));
 
     if (sent < 0) {
         LOG_ERROR("Failed to send message due to error: %s!", get_error_string(errno));
@@ -155,7 +155,7 @@ static u64 get_answer(sock_type_t sock, packet_t restrict packet, socklen_t pack
     socklen_t addr_len = sizeof(in_addr);
 
     LOG_DEBUG("%s", "Receiving response from DNS nameserver...");
-    int64_t recvd = SOCK_RECVFROM(sock, answer, UINT16_MAX, 0, (saddr *)&in_addr, &addr_len);
+    i64 recvd = SOCK_RECVFROM(sock, answer, UINT16_MAX, 0, (saddr *)&in_addr, &addr_len);
 
     if (SOCK_RECV_FAIL(recvd)) {
         LOG_ERROR("Failed to receive message due to error: %d!", GET_ERROR_CODE);
@@ -188,7 +188,7 @@ static inline void decode_answers(Answer *restrict answers, u8 *restrict answers
     u64 offset = 0;
 
     u8 addr_buf[BITS16] = {0};
-    for (int32_t i = 0; i < MIN(ntohs(head.ancount), DECODED_ANSWERS); i++) {
+    for (i32 i = 0; i < MIN(ntohs(head.ancount), DECODED_ANSWERS); i++) {
         Answer *cur_ans = &answers[i];
         memcpy(cur_ans, answers_buf + sizeof(head) + lens->question_len + offset, sizeof(Answer));
 
@@ -215,7 +215,7 @@ void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num
     sock_type_t sock_fd = socket(AF_INET, RSOCK_TYPE, IPPROTO_UDP);
 
     if (SOCK_CREATE_FAIL(sock_fd)) {
-        LOG_ERROR("Failed to open socket: %s | %li", get_error_string(errno), sock_fd);
+        LOG_ERROR("Failed to open socket: %s | %li", get_error_string(errno), (long)sock_fd);
         return;
     }
 

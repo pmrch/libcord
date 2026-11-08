@@ -128,7 +128,7 @@ static inline void test_random(u64 num_iter) {
         curve25519(random_scalar, random_ucoord, my_field_elem);
         encode_u_coordinate(my_output, my_field_elem);
 
-        int64_t donna_ret = curve25519_donna(donna_output, random_scalar, random_ucoord);
+        i64 donna_ret = curve25519_donna(donna_output, random_scalar, random_ucoord);
         if (donna_ret != 0) { continue; }
 
         if (memcmp(my_output, donna_output, BITS32) != 0) {

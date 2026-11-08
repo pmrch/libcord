@@ -4,13 +4,11 @@
 #include "constants.h"
 #include "types.h"
 
-
 #if !defined(__SIZEOF_INT128__)
 u128 u128_add(u128 left, u128 right);
 u128 u128_add_u64(u128 num_a, u64 num_b);
 
 u128 u128_shr51(u128 num_a);
-
 
 #else
 static inline u128 mul_u64(u64 term1, u64 term2) { return (u128)term1 * (u128)term2; }
@@ -30,7 +28,7 @@ int8_t generate_random_bytes(u64 num_bytes, u8 *restrict buffer);
 static inline u16 generate_random_u16(void) {
     u8 bytes[2] = {0};
     generate_random_bytes(2, bytes);
-    int32_t result = ((u16)bytes[0] << ONE_BYTE) | (u16)bytes[1];
+    i32 result = ((u16)bytes[0] << ONE_BYTE) | (u16)bytes[1];
     return (u16)result;
 }
 
@@ -66,15 +64,9 @@ static inline void hex_to_bytes(const char *restrict hex, u8 *restrict bytes) {
 // NOLINTBEGIN (readability-magic-numbers)
 // AI-generated utility for turning little endian into big endian
 static inline u64 swap_u64(u64 val) {
-    return (((val & 0x00000000000000FFULL) << 56) |
-     ((val & 0x000000000000FF00ULL) << 40) |
-     ((val & 0x0000000000FF0000ULL) << 24) |
-     ((val & 0x00000000FF000000ULL) << 8)  |
-     ((val & 0x000000FF00000000ULL) >> 8)  |
-     ((val & 0x0000FF0000000000ULL) >> 24) |
-     ((val & 0x00FF000000000000ULL) >> 40) |
-     ((val & 0xFF00000000000000ULL) >> 56)
-    );
+    return (((val & 0x00000000000000FFULL) << 56) | ((val & 0x000000000000FF00ULL) << 40) | ((val & 0x0000000000FF0000ULL) << 24) |
+            ((val & 0x00000000FF000000ULL) << 8) | ((val & 0x000000FF00000000ULL) >> 8) | ((val & 0x0000FF0000000000ULL) >> 24) |
+            ((val & 0x00FF000000000000ULL) >> 40) | ((val & 0xFF00000000000000ULL) >> 56));
 }
 // NOLINTEND (readability-magic-numbers)
 

@@ -56,7 +56,7 @@ bin/cdc: tests/main.c
 bin:
 	$(MAKE) clean
 	$(MAKE) static
-	@bear -- $(MAKE) bin/cdc
+	$(MAKE) bin/cdc
 	@strip bin/cdiscord
 
 test:

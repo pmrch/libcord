@@ -24,7 +24,7 @@
 #define LOGTYPE static inline void PRINTF_LIKE(6, 7)
 
 // clang-format off
-static const char *get_level(int32_t level) {
+static const char *get_level(i32 level) {
     switch (level) {
         case 0: return "VERBOSE";
         case 1: return "DEBUG";
@@ -35,7 +35,7 @@ static const char *get_level(int32_t level) {
     }
 }
 // clang-format on
-LOGTYPE log_internal(const char *color, int32_t level, const char *func, int32_t line, const char *const FIL, const char *fmt, ...) {
+LOGTYPE log_internal(const char *color, i32 level, const char *func, i32 line, const char *const FIL, const char *fmt, ...) {
     if (level < LOG_LEVEL) { return; }
 
     va_list args;
