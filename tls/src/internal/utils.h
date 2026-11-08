@@ -23,7 +23,7 @@ void free_all(Freeable *objs, u64 num);
 // so it must be able to hold 16 characters including null-terminator
 void get_formatted_ipv4(u32 word, u8 *restrict out);
 
-int8_t generate_random_bytes(u64 num_bytes, u8 *restrict buffer);
+i8 generate_random_bytes(u64 num_bytes, u8 *restrict buffer);
 
 static inline u16 generate_random_u16(void) {
     u8 bytes[2] = {0};
@@ -39,8 +39,8 @@ static inline u64 u64_from_bytes_le(const u8 bytes[ONE_BYTE]) {
 }
 
 static inline void u64_to_bytes(u64 value, u8 out[ONE_BYTE]) {
-    for (u8 i = 1; i < ONE_BYTE; i++) { out[i] = (u8)(value >> (ONE_BYTE * i)) & IPV4; }
-    out[0] = value & IPV4;
+    for (u8 i = 1; i < ONE_BYTE; i++) { out[i] = (u8)(value >> (ONE_BYTE * i)) & MASK_BYTE; }
+    out[0] = value & MASK_BYTE;
 }
 
 // Helper to convert hex ASCII character to 4-bit integer

@@ -68,6 +68,8 @@
 #define FAKE_SESSION_LEN 0x20
 
 #define TLS_CHACHA20_POLY1305_SHA256 0x1303
+#define TLS_COMPRESSION_METHODS_NULL 0x0100
+
 #define TLS_EXT_EC_POINT_FORMATS 0x000b
 #define TLS_EXT_SUPPORTED_GROUPS 0x000a
 #define TLS_EXT_SESSION_TICKET 0x0023
@@ -91,13 +93,13 @@
 #define TLS_KEY_SHARE_PUBKEY_LEN 0x0020
 
 // Numbers
-#define FOUR 0x04
-#define FIVE 0x05
-#define SIX 0x06
-#define SEVEN 0x07
-#define EIGHT 0x08
-#define NINE 0x09
-#define TEN 0x0a
+#define FOUR 0x04U
+#define FIVE 0x05U
+#define SIX 0x06U
+#define SEVEN 0x07U
+#define EIGHT 0x08U
+#define NINE 0x09U
+#define TEN 0x0aU
 
 #ifndef _MSC_VER
 __attribute__((unused)) static void not_empty(void);

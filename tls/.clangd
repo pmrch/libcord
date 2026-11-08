@@ -6,6 +6,4 @@ CompileFlags:
     - "-Isrc/internal" 
     - "-Ideps/donna"
     - "-Wno-declaration-after-statement"
-    - "-Wno-unused-macros"
-  #Compiler: cl
   Compiler: clang

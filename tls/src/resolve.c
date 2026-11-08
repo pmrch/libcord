@@ -12,45 +12,6 @@
 
 #define MAX_DOMAIN_LEN 254
 
-/*
-static inline void encode_hostname(const char *hostname, u32 *final_len, u8 *restrict buf) {
-    if (!hostname || !final_len || !buf || *hostname) { // clang-format off
-        LOG_ERROR("encode_hostname got invalid arguments. Hostname: %p, final_len: %p, buf: %p", (const void*)hostname,
-(void*)final_len, (const void*)buf); return; // Error: invalid arguments
-    }
-    // clang-format on
-
-    const char *cur_dot  = NULL;
-    const char *last_dot = NULL;
-
-    i64 all_diff = 0;
-
-    // +1 for the prefix of the hostname and +1 for the null-terminator
-    *final_len = (u32)(strlen(hostname) + 2);
-    LOG_VERBOSE("Got hostname %s to encode, with length of %u.", hostname, *final_len - 2);
-
-    buf[*final_len - 1] = '.';
-    while ((cur_dot = strchr(hostname + all_diff, '.')) != NULL) {
-        i64 last_diff = (cur_dot - hostname); // Number of characters before the dot
-
-        last_dot = cur_dot;
-        all_diff += last_diff;
-
-        memcpy(buf + 1, hostname, (size_t)last_diff); // +1 offset to skip the first prefix byte
-        hostname += last_diff;
-
-        if (buf[0] == 0) { buf[0] = (u8)last_diff; } // If we get the first dot, insert the first prefix
-    }
-
-    // -2 because we skip prefix and null termination, and -1 for skipping the dot with the ++last_dot
-    buf[1 + all_diff] = (u8)(*final_len - 2 - (u64)all_diff - 1);
-    memcpy(buf + 1 + (all_diff + 1), ++last_dot, (size_t)(*final_len - 2 - (u64)all_diff - 1));
-
-    // null-termination for end
-    buf[*final_len - 1] = 0x00;
-}
-*/
-
 // NOLINTNEXTLINE readability-identifier-length
 static inline u16 pack_flags(u8 qr, u8 opcode, u8 aa, u8 tc, u8 rd, u8 ra, u8 z, u8 rcode) {
     u16 flags_total = (u16)((qr << QR) | (opcode << OPCODE) | (aa << AA) | (tc << TC) | (rd << RD) | (ra << RA) | (z << Z) | rcode);
@@ -211,7 +172,9 @@ void get_addr_ipv4(const char *hostname, u32 *restrict results, u8 *restrict num
     }
 
     LOG_DEBUG("hostname: %s | results: %p | num_results: %p", hostname, (void *)results, (void *)num_results);
-    saddr_in    in_addr = {.sin_family = AF_INET, .sin_port = htons(DNS_PORT), .sin_addr.s_addr = htonl(DNS_SERVER)};
+    saddr_in in_addr = {.sin_family = AF_INET, .sin_port = htons(DNS_PORT), .sin_addr.s_addr = htonl(DNS_SERVER)};
+
+    // NOLINTNEXTLINE (android-cloexec-socket)
     sock_type_t sock_fd = socket(AF_INET, RSOCK_TYPE, IPPROTO_UDP);
 
     if (SOCK_CREATE_FAIL(sock_fd)) {

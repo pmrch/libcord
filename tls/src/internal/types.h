@@ -32,6 +32,16 @@ typedef struct {
     u64 t0, t1, t2, t3, t4;
 } LimbRepr;
 
+#pragma pack(push, 1)
+typedef struct {
+    u8  type;
+    u16 proto;
+    u16 size;
+} TlsHeader;
+#pragma pack(pop)
+
+// NOLINTBEGIN (-Wunused-macros)
+
 #ifndef __SIZEOF_INT128__
 typedef pseudo_u128 u128;
 #else
@@ -43,17 +53,20 @@ typedef __uint128_t u128;
 #include <WinSock2.h>
 
 typedef SOCKET sock_type_t;
+typedef int    socklen_t;
 
 #define RSOCK_TYPE SOCK_DGRAM
-typedef int socklen_t;
+#define RSOCK_STREAM_TYPE SOCK_STREAM
 
 #else
 #include <sys/socket.h>
 
 #define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
-typedef i32 sock_type_t;
+#define RSOCK_STREAM_TYPE (SOCK_STREAM | SOCK_CLOEXEC)
+typedef int32_t sock_type_t;
 // typedef __socklen_t socklen_t;
 
+// NOLINTEND (-Wunused-macros)
 #endif
 
 #endif
