@@ -32,14 +32,6 @@ typedef struct {
     u64 t0, t1, t2, t3, t4;
 } LimbRepr;
 
-#pragma pack(push, 1)
-typedef struct {
-    u8  type;
-    u16 proto;
-    u16 size;
-} TlsHeader;
-#pragma pack(pop)
-
 // NOLINTBEGIN (-Wunused-macros)
 
 #ifndef __SIZEOF_INT128__

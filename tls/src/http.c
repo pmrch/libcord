@@ -27,7 +27,7 @@ static i8 tcp_connect(sock_type_t sock_fd, saddr_in addr, socklen_t len) {
         char ipv[BITS16] = {0};
         get_formatted_ipv4(ntohl(addr.sin_addr.s_addr), (u8 *)ipv);
 
-        LOG_ERROR("Failed to connect to server: %s, error code: %d, fd: %li. Closing socket", ipv, GET_ERROR_CODE, sock_fd);
+        LOG_ERROR("Failed to connect to server: %s, error code: %d, fd: %li. Closing socket", ipv, GET_ERROR_CODE, (long)sock_fd);
         sock_close(sock_fd);
         return -1;
     }
