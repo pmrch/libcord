@@ -62,6 +62,7 @@
 #define TLS1_3 0x0304
 
 #define MASK_BYTE 0xFF
+#define MASK_NIBBLE 0x0F
 
 #define TYPE_HANDSHAKE 0x16
 #define HANDSHAKE_MSG_TYPE 0x01
@@ -100,6 +101,8 @@
 #define EIGHT 0x08U
 #define NINE 0x09U
 #define TEN 0x0aU
+
+// SHA256 constants
 
 #ifndef _MSC_VER
 __attribute__((unused)) static void not_empty(void);

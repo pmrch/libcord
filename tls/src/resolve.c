@@ -83,7 +83,7 @@ static inline void create_packet(u8 *restrict encoded, Lengths *lens, u8 *restri
     lens->packet_size = (socklen_t)pk_size;
 
     u16 net_id = generate_random_u16();
-    LOG_DEBUG("ID for query transaction: %02X", net_id);
+    LOG_DEBUG("ID for query transaction: 0x%04X", net_id);
     // clang-format on
 
     Header head  = {0};
@@ -94,7 +94,7 @@ static inline void create_packet(u8 *restrict encoded, Lengths *lens, u8 *restri
     // Write the header to the packet
     memcpy(packet, &head, sizeof(Header));
     Question quest = {htons(1), htons(1)};
-    LOG_VERBOSE("Question: type=%02x, class=%02x", ntohs(quest.qtype), ntohs(quest.qclass));
+    LOG_VERBOSE("Question: type=0x%02x, class=0x%02x", ntohs(quest.qtype), ntohs(quest.qclass));
 
     memcpy(packet + sizeof(Header), encoded, lens->encode_len);
     memcpy(packet + sizeof(Header) + lens->encode_len, &quest, sizeof(Question));

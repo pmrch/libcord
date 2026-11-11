@@ -1,12 +1,12 @@
 CC = clang
 
 DEBUG_FLAGS = -g -O0 -fsanitize=address,leak,undefined -fno-omit-frame-pointer
-STRICT_FLAGS ?= -Weverything -Wall  -Wno-unsafe-buffer-usage -Wno-declaration-after-statement -Wno-padded
+STRICT_FLAGS = -Weverything -Wall -Wno-unsafe-buffer-usage -Wno-declaration-after-statement -Wno-padded
 RFLAGS = -Rpass=regalloc -Rpass-missed=regalloc -Rpass-analysis=regalloc
 OPT = -O3 -march=native
 
-#CFLAGS = -std=c99 $(DEBUG_FLAGS) -D_POSIX_C_SOURCE=200809L -DLOG_LEVEL=2 -xc
-CFLAGS = -std=c99 $(OPT) -D_POSIX_C_SOURCE=200809L -DLOG_LEVEL=0 -xc $(STRICT_FLAGS)
+#CFLAGS = -std=c99 $(DEBUG_FLAGS) -D_POSIX_C_SOURCE=200809L -DLOG_LEVEL=1 -xc
+CFLAGS = -std=c99 $(OPT) -fstack-usage -D_POSIX_C_SOURCE=200809L -DLOG_LEVEL=0 -xc $(STRICT_FLAGS)
 
 
 #LDFLAGS = -fsanitize=address,leak,undefined

@@ -4,11 +4,28 @@
 #include "log.h"
 #include "platform.h"
 #include "resolve.h"
+#include "sha256.h"
 #include "tls.h"
 #include "utils.h"
 
 #define HTTPS_PORT 443
-#define PAYLOAD_SIZE 512
+#define CIPHER_KEY 0x13
+
+static u16 get_cipher(const u8 *restrict buf, u16 offset_total) {
+    for (u16 i = 0; i < offset_total; i++) {
+        u8 val = buf[i];
+        if (val == CIPHER_KEY) {
+            LOG_DEBUG("Got it: 0x%02x", val);
+            if (i < (offset_total - 1) && (buf[i + 1] >= 0x01 && buf[i + 1] <= 0x03)) {
+                u16 cipher = (u16)(((u16)val << ONE_BYTE) | (u16)buf[i + 1]);
+                LOG_DEBUG("Match found: 0x%04x", cipher);
+                return cipher;
+            }
+        }
+    }
+
+    return 0;
+}
 
 static saddr_in create_sockaddr(const char *const HOSTNAME) {
     u32 addresses[DECODED_ANSWERS] = {0};
@@ -61,6 +78,8 @@ static i8 decode_server_pubkey(const u8 *restrict buf, u16 resp_len, u8 *restric
 }
 
 void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_hello_len, u8 *restrict my_private_key) {
+    char hexbuf[BITS64 << 3] = {0};
+
     saddr_in  addr = create_sockaddr(hostname);
     socklen_t len  = sizeof(addr);
 
@@ -71,23 +90,38 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
         return;
     }
 
+    sha256_ctx sha256 = {0};
     if (tcp_connect(sock_fd, addr, len)) { return; }
 
-    u8 received[1 << (TEN + 1) << 2] = {0};
+    sha256_init(&sha256);
+    sha256_update(&sha256, client_hello, client_hello_len);
+    u8 received[(1 << (TEN + 1)) >> 2] = {0};
 
     tls_record_send(sock_fd, TYPE_HANDSHAKE, client_hello, client_hello_len);
-    i64 result = tls_record_recv(sock_fd, received, sizeof(received));
-    if (result < 0) { return; }
+    i64 srvhello_len = tls_record_recv(sock_fd, received, sizeof(received));
+    if (srvhello_len < 0) { return; }
 
     u8   shared_secret[BITS32] = {0};
     u8   server_pubkey[BITS32] = {0};
     fe51 shared_secret_field   = {0};
 
-    decode_server_pubkey(received, (u16)result, server_pubkey);
+    decode_server_pubkey(received, (u16)srvhello_len, server_pubkey);
     curve25519(my_private_key, server_pubkey, shared_secret_field);
     encode_u_coordinate(shared_secret, shared_secret_field);
 
-    printf("Shared secret: ");
-    for (u8 i = 0; i < BITS32; i++) { printf("%02X ", shared_secret[i]); }
-    printf("\n");
+    buf_to_hex_upper(shared_secret, sizeof(shared_secret), hexbuf, sizeof(hexbuf));
+    LOG_DEBUG("Shared secret: %s", hexbuf);
+
+    u8  hello_hash[BITS32];
+    u16 cipher = get_cipher(received, (u16)srvhello_len);
+    if (cipher == TLS_CHACHA20_POLY1305_SHA256) {
+        LOG_INFO("Received requested cipher: 0x%04x", (u16)TLS_CHACHA20_POLY1305_SHA256);
+        sha256_update(&sha256, received + FIVE, (u64)srvhello_len - FIVE);
+    }
+
+    sha256_final(&sha256, hello_hash);
+    memset(hexbuf, 0, sizeof(hexbuf));
+
+    buf_to_hex_ns(hello_hash, sizeof(hello_hash), hexbuf, (u64)srvhello_len);
+    LOG_INFO("Hello hash was created: %s", hexbuf);
 }

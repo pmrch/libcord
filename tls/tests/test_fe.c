@@ -129,7 +129,10 @@ static inline void test_random(u64 num_iter) {
         encode_u_coordinate(my_output, my_field_elem);
 
         i64 donna_ret = curve25519_donna(donna_output, random_scalar, random_ucoord);
-        if (donna_ret != 0) { continue; }
+        if (donna_ret != 0) {
+            diff_failed++;
+            continue;
+        }
 
         if (memcmp(my_output, donna_output, BITS32) != 0) {
             printf("Fuzz test FAILED on iteration %llu!\n", i + 1);
@@ -163,7 +166,7 @@ static inline void test_random(u64 num_iter) {
     }
 
     printf("\nTotal time: %f ns\n", ns);
-    printf("Average: %.2f us/op\n", ns / 10000.0 / 1000.0);
+    printf("Average: %.2f us/op\n", ns / (double)num_iter / 1000.0);
 }
 
 int main(void) {
