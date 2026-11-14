@@ -1,0 +1,14 @@
+import hashlib
+
+# The ClientHello hex from your latest log
+ch = "0100008e03034c3df5da17612749a4d043f4257660b7c88e2b240af9615ae600a73c6bc853f900000213030100006300000010000e00000b646973636f72642e636f6d000b00020100000a00040002001d000d000a00080403080408050807002b00050403030304003300260024001d00208bc9ce01cf3fb9ab1fef8866db0dfc41a1085a8aa96fc31a560b9e83d7e93458"
+
+# The ServerHello hex from your latest log, with the 160303005a STRIPPED
+sh = "0200005603035f81b85f0150b58988e7b1cebe0bd5a61f1ea455b05fc73829497fed0ceda54d00130300002e00330024001d00201d2396819069b490b16bfc9fd719ee10c1538f3046bdb42d5653c40b00d04879002b00020304"
+
+# Convert hex to bytes, concatenate, and hash
+data = bytes.fromhex(ch + sh)
+hash_result = hashlib.sha256(data).hexdigest()
+
+print("Length:", len(data))
+print("Hash:  ", hash_result)

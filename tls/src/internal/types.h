@@ -32,15 +32,9 @@ typedef struct {
     u64 t0, t1, t2, t3, t4;
 } LimbRepr;
 
-#pragma pack(push, 1)
-typedef struct {
-    u8  type;
-    u16 proto;
-    u16 size;
-} TlsHeader;
-#pragma pack(pop)
-
 // NOLINTBEGIN (-Wunused-macros)
+#define TRUE 1
+#define FALSE (!TRUE)
 
 #ifndef __SIZEOF_INT128__
 typedef pseudo_u128 u128;
@@ -64,7 +58,6 @@ typedef int    socklen_t;
 #define RSOCK_TYPE (SOCK_DGRAM | SOCK_CLOEXEC)
 #define RSOCK_STREAM_TYPE (SOCK_STREAM | SOCK_CLOEXEC)
 typedef int32_t sock_type_t;
-// typedef __socklen_t socklen_t;
 
 // NOLINTEND (-Wunused-macros)
 #endif

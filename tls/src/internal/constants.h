@@ -62,6 +62,7 @@
 #define TLS1_3 0x0304
 
 #define MASK_BYTE 0xFF
+#define MASK_NIBBLE 0x0F
 
 #define TYPE_HANDSHAKE 0x16
 #define HANDSHAKE_MSG_TYPE 0x01

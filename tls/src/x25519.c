@@ -29,7 +29,7 @@ static inline void carry_propagate(u64 *restrict field_elem) {
 
 static inline void reduce(u64 *restrict field_elem) {
     carry_propagate(field_elem);
-    carry_propagate(field_elem);
+    // carry_propagate(field_elem);
 
     u64 carry = (field_elem[0] + PRIME) >> LIMB_SIZE;
     carry     = (field_elem[1] + carry) >> LIMB_SIZE;

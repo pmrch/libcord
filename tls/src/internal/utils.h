@@ -3,6 +3,10 @@
 
 #include "constants.h"
 #include "types.h"
+#include <string.h>
+
+static const char HEX_TABLE[BITS16]       = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+static const char HEX_TABLE_UPPER[BITS16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 #if !defined(__SIZEOF_INT128__)
 u128 u128_add(u128 left, u128 right);
@@ -25,6 +29,39 @@ void get_formatted_ipv4(u32 word, u8 *restrict out);
 
 i8 generate_random_bytes(u64 num_bytes, u8 *restrict buffer);
 
+static inline u8 buf_to_hex_ns(const u8 *buffer, u64 buflen, char *restrict hexbuf, u64 hexbuf_len) {
+    memset(hexbuf, 0, hexbuf_len);
+    if ((buflen * 2) + 1 > hexbuf_len) { return FALSE; }
+
+    uint64_t local_off = 0;
+    for (uint64_t i = 0; i < buflen; i++) {
+        uint8_t cur_byte = buffer[i];
+
+        hexbuf[local_off++] = HEX_TABLE[(cur_byte >> 4) & MASK_NIBBLE];
+        hexbuf[local_off++] = HEX_TABLE[cur_byte & MASK_NIBBLE];
+    }
+
+    hexbuf[local_off] = '\0';
+    return TRUE;
+}
+
+static inline u8 buf_to_hex_upper(const u8 *buffer, u64 buflen, char *restrict hexbuf, u64 hexbuf_len) {
+    memset(hexbuf, 0, hexbuf_len);
+    if ((buflen * 3) + 1 > hexbuf_len) { return FALSE; }
+
+    uint64_t local_off = 0;
+    for (uint64_t i = 0; i < buflen; i++) {
+        uint8_t cur_byte = buffer[i];
+
+        hexbuf[local_off++] = HEX_TABLE_UPPER[(cur_byte >> 4) & MASK_NIBBLE];
+        hexbuf[local_off++] = HEX_TABLE_UPPER[cur_byte & MASK_NIBBLE];
+        hexbuf[local_off++] = ' ';
+    }
+
+    hexbuf[local_off] = '\0';
+    return TRUE;
+}
+
 static inline u16 generate_random_u16(void) {
     u8 bytes[2] = {0};
     generate_random_bytes(2, bytes);
@@ -32,13 +69,15 @@ static inline u16 generate_random_u16(void) {
     return (u16)result;
 }
 
-static inline u64 u64_from_bytes_le(const u8 bytes[ONE_BYTE]) {
+// Converts 8 Little Endian bytes into 64-bit unsigned integer
+static inline u64 u64_from_bytes_le(const u8 *restrict bytes) {
     u64 result = (u64)bytes[0];
     for (u8 i = 1; i < ONE_BYTE; i++) { result |= ((u64)bytes[i] << (ONE_BYTE * i)); }
     return result;
 }
 
-static inline void u64_to_bytes(u64 value, u8 out[ONE_BYTE]) {
+// Converts 64-bit unsigned integer into 8 Little Endian bytes
+static inline void u64_to_bytes(u64 value, u8 *restrict out) {
     for (u8 i = 1; i < ONE_BYTE; i++) { out[i] = (u8)(value >> (ONE_BYTE * i)) & MASK_BYTE; }
     out[0] = value & MASK_BYTE;
 }

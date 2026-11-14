@@ -4,7 +4,7 @@
 #include "types.h"
 #include "utils.h"
 
-#define HEADER_LEN 5
+#define HEADER_LEN 0x05
 
 static inline void u16_append(u16 num, u8 *restrict buffer, u16 *restrict offset) {
     u16 local_off       = *offset;
@@ -12,14 +12,6 @@ static inline void u16_append(u16 num, u8 *restrict buffer, u16 *restrict offset
     buffer[local_off++] = num & MASK_BYTE;
 
     *offset = local_off;
-}
-
-static inline void print_header(const u8 *restrict buf) {
-    if (buf == NULL) { return; }
-
-    printf("Got the following header record from server: ");
-    for (u8 i = 0; i < FIVE; i++) { printf("%02x ", buf[i]); }
-    printf("\nFrom this, the record size is 0x%02x (%u) bytes\n", buf[4], buf[4]);
 }
 
 u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len, const u8 *restrict pubkey) {
@@ -195,13 +187,13 @@ i64 tls_record_recv(sock_type_t sock_fd, u8 *restrict buf, u16 bufsize) {
             return -1;
         }
 
-        LOG_VERBOSE("Received %li", recvd);
+        LOG_VERBOSE("Received %li bytes", (long)recvd);
         if (recvd > 0) { offset_total += (u16)(recvd); }
     } while (offset_total != (size + FIVE));
 
-    LOG_DEBUG("Got offset: %u", offset_total);
+    LOG_DEBUG("Total answer length: %u bytes", offset_total);
+    LOG_DEBUG("Answer header: %02x %02x %02x %02x %02x", buf[0], buf[1], buf[2], buf[3], buf[4]);
 
-    print_header(buf);
     return offset_total;
 }
 
@@ -210,11 +202,9 @@ i64 tls_record_send(sock_type_t sock_fd, const u8 TYPE, const u8 *payload, u16 l
     header.type  = TYPE;
     header.proto = htons(TLS1_2);
     header.size  = htons(len);
-    // header.size = ((len >> ONE_BYTE) & MASK16_high) | (len & MASK16_high);
 
-    socklen_t sent = 0;
-
-    packet_t header_ptr = (packet_t)&header;
+    socklen_t sent       = 0;
+    packet_t  header_ptr = (packet_t)&header;
     LOG_VERBOSE("TLS ClientHello header: type=0x%02x, proto=0x%04x, len=0x%04x", header.type, ntohs(header.proto), ntohs(header.size));
 
     while (sent < HEADER_LEN) {
