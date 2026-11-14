@@ -1,6 +1,9 @@
 #if !defined(FE51_NO_U128_H)
 #define FE51_NO_U128_H
 
+#include "notempty.h"
+static notempty_int not_empty(void) { return 0; }
+
 #if !defined(__SIZEOF_INT128__)
 #include "platform.h"
 #include "types.h"

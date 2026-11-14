@@ -101,8 +101,7 @@
 #define NINE 0x09U
 #define TEN 0x0aU
 
-#ifndef _MSC_VER
-__attribute__((unused)) static void not_empty(void);
-#endif
+#include "notempty.h"
+static notempty_int not_empty(void) { return 0; }
 
 #endif

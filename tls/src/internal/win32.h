@@ -1,3 +1,8 @@
+#include "types.h"
+#ifndef _MSC_VER
+__attribute__((unused)) static u64 not_empty_win32(void);
+#endif
+
 #if !defined(CDISCORD_WIN32_H) && defined(_WIN32)
 #define CDISCORD_WIN32_H
 
@@ -9,8 +14,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include "types.h"
 
-#include <windows.h>
 #include <intrin.h>
+#include <windows.h>
 
 typedef struct {
     LARGE_INTEGER start;
@@ -23,8 +28,8 @@ typedef struct {
 } Helper4u64;
 
 typedef const char *packet_t;
-typedef char *answer_t;
-typedef char *timeout_t;
+typedef char       *answer_t;
+typedef char       *timeout_t;
 
 #pragma comment(lib, "ws2_32.lib")
 #include <WinSock2.h>
