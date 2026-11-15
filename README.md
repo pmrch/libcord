@@ -6,6 +6,7 @@ A zero-dependency, zero-heap Discord library written in pure C.
 - [x] Custom DNS Resolver
 - [x] TLS 1.3 (Handshake up to ServerHello)
 - [x] HMAC-SHA256
+- [ ] HKDF-HMAC-SHA256
 - [ ] ChaCha20-Poly1305
 - [ ] WebSocket (WSS)
 - [ ] Discord Gateway
