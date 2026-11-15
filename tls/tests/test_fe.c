@@ -10,6 +10,8 @@
 #define CLR_RED   "\033[31m"
 #define CLR_RESET "\033[0m"
 
+#define SCALER 1000.0
+
 #ifndef ITER_COUNT
 #define ITER_COUNT 10000
 #endif
@@ -19,6 +21,8 @@ typedef struct {
     const char *ucoord;
     const char *expected;
 } X25519TestVector;
+
+typedef unsigned long long ull;
 
 // clang-format off
 static const X25519TestVector VECTORS[] = {
@@ -135,7 +139,7 @@ static inline void test_random(u64 num_iter) {
         }
 
         if (memcmp(my_output, donna_output, BITS32) != 0) {
-            printf("Fuzz test FAILED on iteration %llu!\n", i + 1);
+            printf("Fuzz test FAILED on iteration %llu!\n", (ull)i + 1);
 
             printf("Scalar:     ");
             print_hex(random_scalar);
@@ -157,16 +161,16 @@ static inline void test_random(u64 num_iter) {
     }
 
     end_timer(&timer);
-    double ns = get_timer_ns(&timer);
+    double nsec = get_timer_ns(&timer);
 
     if (diff_failed == 0) {
-        printf("\n%sAll %llu X25519 randomly generated test VECTORS PASSED successfully.%s\n", CLR_GREEN, num_iter, CLR_RESET);
+        printf("\n%sAll %llu X25519 randomly generated test VECTORS PASSED successfully.%s\n", CLR_GREEN, (ull)num_iter, CLR_RESET);
     } else {
-        printf("\n%s%d of %llu X25519 randomly generated test VECTORS FAILED.%s\n", CLR_RED, diff_failed, num_iter, CLR_RESET);
+        printf("\n%s%d of %llu X25519 randomly generated test VECTORS FAILED.%s\n", CLR_RED, diff_failed, (ull)num_iter, CLR_RESET);
     }
 
-    printf("\nTotal time: %f ns\n", ns);
-    printf("Average: %.2f us/op\n", ns / (double)num_iter / 1000.0);
+    printf("\nTotal time: %f ns\n", nsec);
+    printf("Average: %.2f us/op\n", nsec / (double)num_iter / SCALER);
 }
 
 int main(void) {

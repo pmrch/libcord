@@ -117,11 +117,11 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
     if (cipher == TLS_CHACHA20_POLY1305_SHA256) {
         LOG_INFO("Received requested cipher: 0x%04x", (u16)TLS_CHACHA20_POLY1305_SHA256);
         sha256_update(&sha256, received + FIVE, (u64)srvhello_len - FIVE);
+
+        sha256_final(&sha256, hello_hash);
+        memset(hexbuf, 0, sizeof(hexbuf));
+
+        buf_to_hex_ns(hello_hash, sizeof(hello_hash), hexbuf, (u64)srvhello_len);
+        LOG_INFO("Hello hash was created: %s", hexbuf);
     }
-
-    sha256_final(&sha256, hello_hash);
-    memset(hexbuf, 0, sizeof(hexbuf));
-
-    buf_to_hex_ns(hello_hash, sizeof(hello_hash), hexbuf, (u64)srvhello_len);
-    LOG_INFO("Hello hash was created: %s", hexbuf);
 }

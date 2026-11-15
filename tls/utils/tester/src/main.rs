@@ -1,5 +1,7 @@
-use std::process::{Command, Output};
+#![feature(string_from_utf8_lossy_owned)]
+
 use std::path::PathBuf;
+use std::process::{Command, Output};
 
 type Err = Box<dyn std::error::Error>;
 type Res<T> = std::result::Result<T, Err>;
@@ -7,14 +9,20 @@ type Res<T> = std::result::Result<T, Err>;
 fn main() -> Res<()> {
     let cur_dir: PathBuf = std::env::current_dir()?;
     let final_dir = cur_dir.join("bin");
-    if !final_dir.exists() { println!("What the fuck"); }
+    if !final_dir.exists() {
+        println!("What the fuck");
+    }
 
     for i in 0..10 {
         let mut results: [f64; 100] = [0f64; 100];
-        for (outer_index, _) in (0..100).enumerate() {            
-            let cmd: Output = Command::new("./cdiscord").current_dir(&final_dir).output()?;
-            if !cmd.status.success() { return Err("Failed to call the command".into()); }
-            
+        for (outer_index, _) in (0..100).enumerate() {
+            let cmd: Output = Command::new("./cdiscord")
+                .current_dir(&final_dir)
+                .output()?;
+
+            if !cmd.status.success() {
+                return Err("Failed to call the command".into());
+            }
 
             let out_str: String = String::from_utf8_lossy_owned(cmd.stdout);
             let mut num: f64 = 0.0;
@@ -35,11 +43,8 @@ fn main() -> Res<()> {
         let slowest = results.last().unwrap();
         let fastest = results.first().unwrap();
 
-        println!("Average loop runtime: {avg} us | slowest run took {slowest} us | fastest took {fastest} us | in batch {i}");      
+        println!("Average loop runtime: {avg} us | slowest run took {slowest} us | fastest took {fastest} us | in batch {i}");
     }
-    
+
     Ok(())
 }
-
-
-

@@ -4,10 +4,10 @@
 
 // Helper to print hex for debugging
 // NOLINTBEGIN (readability-magic-numbers)
-static void print_hex(const u8 *buf, size_t len) {
+/*static void print_hex(const u8 *buf, size_t len) {
     for (size_t i = 0; i < len; i++) { printf("%02x", buf[i]); }
     printf("\n");
-}
+}*/
 
 // Helper to compare expected and actual
 static int check_hmac(const char *test_name, const u8 *key, size_t key_len, const u8 *data, size_t data_len,

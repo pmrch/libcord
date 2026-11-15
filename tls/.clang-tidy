@@ -16,7 +16,7 @@ Checks: >
   -google-objc-*,
   -objc-*
 
-#WarningsAsErrors: '*'
+WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'
 
 # Extra sadistic formatting and strictness enforcement

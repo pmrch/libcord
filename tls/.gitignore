@@ -15,3 +15,7 @@ deps/**.o
 **/.vscode
 
 **/build
+
+# Exclude test executables
+tests/test_*
+!tests/test_*.c

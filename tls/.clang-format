@@ -1,3 +1,5 @@
+BasedOnStyle: LLVM
+
 # Pointer formatting
 PointerAlignment: Right
 
