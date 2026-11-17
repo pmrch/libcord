@@ -1,6 +1,7 @@
 #include "hkdf.h"
 #include "log.h"
 #include "sha256.h"
+#include "utils.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -72,4 +73,30 @@ void hkdf_expand(const u8 *restrict rand_key, u64 rand_len, u8 *restrict key_out
         done += to_copy;
         counter++;
     }
+}
+
+void hkdf_expand_label(const u8 *secret, u64 secret_len, const char *label, const u8 *context, u64 context_len, u8 *out, u64 out_len) {
+    u8 info_buf[BITS64] = {0};
+
+    u16 offset    = 0;
+    u8  label_len = (u8)strlen(label);
+
+    u16_append((u16)out_len, info_buf, &offset);
+    info_buf[offset++] = (label_len + SIX);
+
+    // NOLINTBEGIN (bugprone-not-null-terminated-result)
+    memcpy(info_buf + offset, "tls13 ", SIX);
+    offset += SIX;
+
+    memcpy(info_buf + offset, label, label_len);
+    offset += label_len;
+
+    info_buf[offset++] = (u8)context_len;
+    if (context_len > 0 && context != NULL) {
+        memcpy(info_buf + offset, context, context_len);
+        offset += context_len;
+    }
+
+    // NOLINTEND (bugprone-not-null-terminated-result)
+    hkdf_expand(secret, secret_len, out, out_len, info_buf, offset);
 }

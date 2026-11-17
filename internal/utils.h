@@ -109,4 +109,12 @@ static inline u64 swap_u64(u64 val) {
 }
 // NOLINTEND (readability-magic-numbers)
 
+static inline void u16_append(u16 num, u8 *restrict buffer, u16 *restrict offset) {
+    u16 local_off       = *offset;
+    buffer[local_off++] = (num >> ONE_BYTE) & MASK_BYTE;
+    buffer[local_off++] = num & MASK_BYTE;
+
+    *offset = local_off;
+}
+
 #endif

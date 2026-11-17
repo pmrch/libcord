@@ -11,6 +11,26 @@
 
 #define HTTPS_PORT 443
 #define CIPHER_KEY 0x13
+#define IV_SIZE 12
+
+#define HKDF_EXTRACT(salt, out, ikm) \
+    hkdf_extract((salt), (salt) == NULL ? 0 : sizeof((salt)), (out), sizeof((out)), (ikm), sizeof((ikm)))
+
+#define HKDF_EXPAND_LABEL(secret, label, context, out) \
+    hkdf_expand_label((secret), sizeof((secret)), (label), (context), context == NULL ? 0 : sizeof((context)), (out), sizeof((out)))
+
+typedef struct {
+    u8 shared[HASH_LEN];
+    u8 early[HASH_LEN];
+    u8 handshake[HASH_LEN];
+    u8 client_hs[HASH_LEN];
+    u8 server_hs[HASH_LEN];
+} Secrets;
+
+typedef struct {
+    u8 server_key[HASH_LEN];
+    u8 server_iv[IV_SIZE];
+} HandshakeKeys;
 
 static u16 get_cipher(const u8 *restrict buf, u16 offset_total) {
     for (u16 i = 0; i < offset_total; i++) {
@@ -115,6 +135,9 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
 
     u8  hello_hash[BITS32];
     u16 cipher = get_cipher(received, (u16)srvhello_len);
+
+    Secrets       secrets = {0};
+    HandshakeKeys hskeys  = {0};
     if (cipher == TLS_CHACHA20_POLY1305_SHA256) {
         LOG_INFO("Received requested cipher: 0x%04x", (u16)TLS_CHACHA20_POLY1305_SHA256);
         sha256_update(&sha256, received + FIVE, (u64)srvhello_len - FIVE);
@@ -125,7 +148,14 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
         buf_to_hex_ns(hello_hash, sizeof(hello_hash), hexbuf, (u64)srvhello_len);
         LOG_INFO("Hello hash was created: %s", hexbuf);
 
-        u8 early_secret[BITS32] = {0};
-        hkdf_extract(NULL, 0, early_secret, sizeof(early_secret), const u8 *restrict ikm, u64 ikm_len)
+        u8 initial_zeros[HASH_LEN] = {0};
+        HKDF_EXTRACT(NULL, secrets.early, initial_zeros);
+        HKDF_EXTRACT(secrets.early, secrets.handshake, shared_secret);
+
+        HKDF_EXPAND_LABEL(secrets.handshake, "c hs traffic", hello_hash, secrets.client_hs);
+        HKDF_EXPAND_LABEL(secrets.handshake, "s hs traffic", hello_hash, secrets.server_hs);
+
+        HKDF_EXPAND_LABEL(secrets.server_hs, "key", NULL, hskeys.server_key);
+        HKDF_EXPAND_LABEL(secrets.server_hs, "iv", NULL, hskeys.server_iv);
     }
 }

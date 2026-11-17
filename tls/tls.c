@@ -6,14 +6,6 @@
 
 #define HEADER_LEN 0x05
 
-static inline void u16_append(u16 num, u8 *restrict buffer, u16 *restrict offset) {
-    u16 local_off       = *offset;
-    buffer[local_off++] = (num >> ONE_BYTE) & MASK_BYTE;
-    buffer[local_off++] = num & MASK_BYTE;
-
-    *offset = local_off;
-}
-
 u16 build_client_hello(u8 *restrict buffer, const char *hostname, u16 hname_len, const u8 *restrict pubkey) {
     u16 list_len_sname = hname_len + 3;
     u16 ext_len_sname  = hname_len + FIVE;
