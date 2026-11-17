@@ -7,3 +7,25 @@
 **/lib/**
 **/compile_commands.json
 **/CMake*
+
+utils/tester/target
+perf.**
+
+deps/**/*.c
+deps/**.c
+
+deps/**/*.o
+deps/**.o
+
+**.obj
+**.asm
+**/asm/**
+
+**/.vs
+**/.vscode
+
+**/build
+
+# Exclude test executables
+tests/test_*
+!tests/test_*.c

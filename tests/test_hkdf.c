@@ -22,11 +22,11 @@ static int check_result(const char *test_name, const u8 *actual, const char *exp
     for (size_t i = 0; i < strlen(expected_hex) / 2; i++) { (void)sprintf(actual_hex + (i * 2), "%02x", actual[i]); }
 
     if (strcmp(actual_hex, expected_hex) == 0) {
-        printf("[PASS] %s\n", test_name);
+        printf("\x1b[32m[PASS] %s\x1b[0m\n", test_name);
         return 0;
     }
 
-    printf("[FAIL] %s\n", test_name);
+    printf("\x1b[31m[FAIL] %s\x1b[0m\n", test_name);
     printf("  Expected: %s\n", expected_hex);
     printf("  Actual:   %s\n", actual_hex);
     return 1;

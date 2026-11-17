@@ -11,25 +11,25 @@ CFLAGS = -std=c99 $(OPT) -fstack-usage -D_POSIX_C_SOURCE=200809L -DLOG_LEVEL=0 -
 
 #LDFLAGS = -fsanitize=address,leak,undefined
 LDFLAGS = -flto -static
-INCLUDE = -Iinclude -Isrc/internal
+INCLUDE = -Iinclude -Iinternal
 
-SRC := $(shell find src -name "*.c")
+SRC := $(shell find crypto net tls -name "*.c")
 
-OBJ := $(patsubst src/%.c,build/%.o,$(SRC))
-OBJ_ASM := $(patsubst src/%.c,build/asm/%.s,$(SRC))
+OBJ := $(patsubst %.c,build/%.o,$(SRC))
+OBJ_ASM := $(patsubst %.c,build/asm/%.s,$(SRC))
 
-OBJ_DYN := $(patsubst src/%.c,build_dyn/%.o,$(SRC))
-OBJ_DYN_ASM := $(patsubst src/%.c,build_dyn/asm/%.s,$(SRC))
+OBJ_DYN := $(patsubst %.c,build_dyn/%.o,$(SRC))
+OBJ_DYN_ASM := $(patsubst %.c,build_dyn/asm/%.s,$(SRC))
 
-build/%.o: src/%.c
+build/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
-build/asm/%.s: src/%.c
+build/asm/%.s: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCLUDE) $< -S -masm=intel -o $@
 
-build_dyn/%.o: src/%.c
+build_dyn/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCLUDE) -fPIC -c $< -o $@
 
@@ -59,7 +59,7 @@ bin:
 	$(MAKE) bin/cdc
 	@strip bin/cdiscord
 
-test:
+test: static
 	$(MAKE) static
 	$(MAKE) -C tests test
 

@@ -1,6 +1,7 @@
 #include "http.h"
 #include "constants.h"
 #include "crypt.h"
+#include "hkdf.h"
 #include "log.h"
 #include "platform.h"
 #include "resolve.h"
@@ -123,5 +124,8 @@ void connect_to_server(const char *hostname, const u8 *client_hello, u16 client_
 
         buf_to_hex_ns(hello_hash, sizeof(hello_hash), hexbuf, (u64)srvhello_len);
         LOG_INFO("Hello hash was created: %s", hexbuf);
+
+        u8 early_secret[BITS32] = {0};
+        hkdf_extract(NULL, 0, early_secret, sizeof(early_secret), const u8 *restrict ikm, u64 ikm_len)
     }
 }
