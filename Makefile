@@ -13,7 +13,7 @@ CFLAGS = -std=c99 $(OPT) -fstack-usage -D_POSIX_C_SOURCE=200809L -DLOG_LEVEL=0 -
 LDFLAGS = -flto -static
 INCLUDE = -Iinclude -Iinternal
 
-SRC := $(shell find crypto net tls -name "*.c")
+SRC := $(shell find crypto net tls utils -name "*.c")
 
 OBJ := $(patsubst %.c,build/%.o,$(SRC))
 OBJ_ASM := $(patsubst %.c,build/asm/%.s,$(SRC))
