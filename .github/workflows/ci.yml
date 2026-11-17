@@ -13,7 +13,6 @@ jobs:
         run: apk add --no-cache clang lld llvm make bear binutils git build-base
 
       - name: Build and test
-        working-directory: tls
         run: |
           make static
           make get_donna
